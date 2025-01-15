@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Замените на токен вашего бота
-TELEGRAM_TOKEN = '7547606520:AAEzsX_6egz1yGdTrZrjq424jqNHljhRWNg'  # ⚠️ Убедитесь, что токен не доступен публично
+TELEGRAM_TOKEN = 'TOKEN'  # ⚠️ Убедитесь, что токен не доступен публично
 
 # Рабочая директория
 WORKING_DIR = r'D:\prdja'

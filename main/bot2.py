@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------
 # ИНИЦИАЛИЗАЦИЯ БОТА И ДИСПЕТЧЕРА
 # ---------------------------------------
-API_TOKEN = "7547606520:AAEzsX_6egz1yGdTrZrjq424jqNHljhRWNg"
+API_TOKEN = "TOKEN"
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)  # Dispatcher(bot, storage=MemoryStorage()) если нужна FSM
