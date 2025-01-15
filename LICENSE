@@ -1,0 +1,54 @@
+LICENSE
+
+(Русская версия)
+
+Авторское право (c) [jestelf], [2023]. Все права защищены.
+
+1. Область распространения  
+   Данная лицензия распространяется на исходный код, бинарные сборки и прочие материалы, связанные с данным программным обеспечением (далее «Продукт»).
+
+2. Разрешённое использование (Некоммерческое)  
+   - Разрешается использовать, копировать и распространять Продукт (включая модификации, адаптации и форки) только в некоммерческих целях.  
+   - Разрешается личное (домашнее) использование и модификация кода без ограничений, кроме указанных в п.3.
+
+3. Коммерческое использование  
+   - Любое коммерческое использование Продукта (включая продажу, аренду, предоставление услуг на его основе и т.п.) возможно только после получения письменного разрешения от автора.  
+   - Если вы хотите использовать Продукт в коммерческих целях, свяжитесь с автором для обсуждения условий.
+
+4. Отказ от гарантий  
+   - Продукт предоставляется «как есть», без каких-либо явных или подразумеваемых гарантий, включая (но не ограничиваясь) предполагаемые гарантии пригодности для определённой цели.  
+   - Автор не несёт ответственности за любой ущерб, возникший в результате использования или невозможности использования Продукта.
+
+5. Запрещённые действия  
+   - Удалять или изменять какие-либо уведомления об авторском праве или лицензионные уведомления.  
+   - Нарушать иным образом пункты данной лицензии.
+
+6. Контакт  
+   - По вопросам коммерческого использования или для любых иных запросов свяжитесь с автором: jestelf (GitHub и Telegram).
+
+---
+(English Version)
+
+Copyright (c) [jestelf], [2023]. All rights reserved.
+
+1. Scope  
+   This license applies to the source code, binary builds, and any other materials related to this software (hereinafter referred to as the “Product”).
+
+2. Permitted Use (Non-commercial)  
+   - You are allowed to use, copy, and distribute the Product (including modifications, adaptations, and forks) exclusively for non-commercial purposes.  
+   - Personal (home) use and code modification are allowed without restrictions, except as described in Section 3.
+
+3. Commercial Use  
+   - Any commercial use of the Product (including but not limited to selling, renting, offering services based on the Product, etc.) is only permitted with written permission from the author.  
+   - If you want to use the Product for commercial purposes, please contact the author to discuss the terms.
+
+4. Disclaimer of Warranty  
+   - The Product is provided “as is,” without any explicit or implied warranties, including (but not limited to) implied warranties of merchantability or fitness for a particular purpose.  
+   - The author shall not be liable for any damages arising from the use or inability to use the Product.
+
+5. Prohibited Actions  
+   - Removing or altering any copyright notices or license notices.  
+   - Otherwise violating the terms of this license.
+
+6. Contact  
+   - For any questions or requests (including commercial use), please contact the author: jestelf (GitHub, Telegram).
