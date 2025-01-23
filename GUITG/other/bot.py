@@ -1,7 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
-from config import TOKEN  # Импортируем токен из файла config.py
+from other.config import TOKEN  # Импортируем токен из файла config.py
 
 # Настроим логирование с сохранением в файл
 logging.basicConfig(

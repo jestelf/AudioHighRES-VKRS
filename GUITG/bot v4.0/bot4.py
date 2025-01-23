@@ -4,7 +4,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 from handlers_4 import button_handler, text_or_voice_handler  # Импорт обработчиков
 from buttons_4 import create_inline_buttons  # Импортируем только функцию создания кнопок
 
-from config import TOKEN
+from other.config import TOKEN
 
 # Настройка логгера
 logger = logging.getLogger(__name__)

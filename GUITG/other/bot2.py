@@ -2,7 +2,7 @@ import logging
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
 from handlers import button_handler, text_or_voice_handler
-from config import TOKEN
+from other.config import TOKEN
 
 # Создаем логгер
 logger = logging.getLogger(__name__)
