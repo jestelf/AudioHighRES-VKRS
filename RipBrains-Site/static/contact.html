@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Контакты</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/static/js/script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Контакты</h1>
+
+        <div class="card">
+            <img src="/static/images/contact1.jpg" alt="jestelf" class="contact-photo">
+            <h2>Александр Ширшов (jestelf)</h2>
+            <p>Тимлидер и основной разработчик.</p>
+        </div>
+
+        <div class="card">
+            <img src="/static/images/contact2.jpg" alt="jonycat" class="contact-photo">
+            <h2>Эльдар Акаев (jonycat)</h2>
+            <p>Разработчик фронтенда и главный по утилитам.</p>
+        </div>
+
+        <div class="card">
+            <img src="/static/images/contact3.jpg" alt="Андрей Быков" class="contact-photo">
+            <h2>Андрей Быков</h2>
+            <p>Руководитель в вопросах экономики и ведения проекта, продвижение-пиар.</p>
+        </div>
+
+        <a href="/">На главную</a>
+        <a href="/about">О нас</a>
+        <a href="/tariffs">Тарифы</a>
+        <br>
+        <button onclick="Telegram.WebApp.close()">Закрыть</button>
+    </div>
+</body>
+</html>
