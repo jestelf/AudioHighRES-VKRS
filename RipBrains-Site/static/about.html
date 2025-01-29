@@ -4,19 +4,57 @@
     <meta charset="UTF-8">
     <title>О нас</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Telegram Login Widget -->
+    <script src="https://telegram.org/js/telegram-widget.js?7" 
+            data-telegram-login="MyHackerBot" 
+            data-size="large" 
+            data-userpic="false" 
+            data-auth-url="/telegram_auth" 
+            data-request-access="write">
+    </script>
     <script src="/static/js/script.js" defer></script>
 </head>
 <body>
-    <div class="container">
+    <header>
+        <img src="/static/images/logo.png" alt="Логотип" class="logo">
         <h1>О нас</h1>
+    </header>
+    <div class="container">
         <p>Приветствуем вас! Мы команда энтузиастов, стремящихся создавать лучшие решения для наших пользователей.</p>
         <p>Авторизуйтесь через Telegram, чтобы узнать больше о наших возможностях.</p>
-        <a href="/">На главную</a>
-        <a href="/tariffs">Тарифы</a>
-        <a href="/contact">Контакты</a>
-        <br>
+
+        <!-- Галерея изображений -->
+        <h2>Наша Галерея</h2>
+        <div class="gallery">
+            <img src="/static/images/gallery1.jpg" alt="Галерея 1">
+            <img src="/static/images/gallery2.jpg" alt="Галерея 2">
+            <img src="/static/images/gallery3.jpg" alt="Галерея 3">
+            <img src="/static/images/gallery4.jpg" alt="Галерея 4">
+            <img src="/static/images/gallery5.jpg" alt="Галерея 5">
+            <!-- Добавьте больше изображений по необходимости -->
+        </div>
+
+        <div class="navigation">
+            <a href="/">На главную</a>
+            <a href="/tariffs">Тарифы</a>
+            <a href="/contact">Контакты</a>
+        </div>
+        <!-- Кнопка авторизации -->
+        <a href="/telegram_auth" class="auth-button">Войти через Telegram</a>
+        <!-- Telegram Login Widget Button -->
+        <div class="telegram-login">
+            <script src="https://telegram.org/js/telegram-widget.js?7" 
+                    data-telegram-login="MyHackerBot" 
+                    data-size="large" 
+                    data-userpic="false" 
+                    data-auth-url="/telegram_auth" 
+                    data-request-access="write">
+            </script>
+        </div>
         <button onclick="Telegram.WebApp.close()">Закрыть</button>
     </div>
+    <footer>
+        &copy; 2025 RipBrain. Все права защищены.
+    </footer>
 </body>
 </html>
