@@ -1,65 +1,8 @@
-2025-01-19 15:43:14,548 - INFO - Бот успешно запущен
-2025-01-19 15:43:14,548 - INFO - Бот успешно запущен
-2025-01-19 15:43:14,744 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getMe "HTTP/1.1 200 OK"
-2025-01-19 15:43:14,795 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/deleteWebhook "HTTP/1.1 200 OK"
-2025-01-19 15:43:14,797 - INFO - Application started
-2025-01-19 15:43:24,971 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:32,301 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:32,301 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 15:43:32,301 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 15:43:32,516 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/sendMessage "HTTP/1.1 200 OK"
-2025-01-19 15:43:33,967 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:34,104 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/answerCallbackQuery "HTTP/1.1 200 OK"
-2025-01-19 15:43:34,105 - INFO - Пользователь 716309986 нажал на button_1 кнопку
-2025-01-19 15:43:34,263 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/editMessageText "HTTP/1.1 200 OK"
-2025-01-19 15:43:35,461 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:35,561 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/answerCallbackQuery "HTTP/1.1 200 OK"
-2025-01-19 15:43:35,562 - INFO - Пользователь 716309986 нажал на button_2 кнопку
-2025-01-19 15:43:35,692 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/editMessageText "HTTP/1.1 200 OK"
-2025-01-19 15:43:36,491 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:36,584 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/answerCallbackQuery "HTTP/1.1 200 OK"
-2025-01-19 15:43:36,585 - INFO - Пользователь 716309986 нажал на button_3 кнопку
-2025-01-19 15:43:36,694 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/editMessageText "HTTP/1.1 200 OK"
-2025-01-19 15:43:38,736 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:38,946 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/answerCallbackQuery "HTTP/1.1 200 OK"
-2025-01-19 15:43:38,947 - INFO - Пользователь 716309986 нажал на button_3 кнопку
-2025-01-19 15:43:38,947 - INFO - Попытка изменить сообщение на идентичное. Обновление отменено.
-2025-01-19 15:43:48,804 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:43:58,875 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:08,937 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:18,995 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:29,056 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:39,113 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:49,171 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:44:59,250 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:09,327 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:19,413 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:29,467 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:39,525 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:49,610 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:45:59,673 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:46:09,731 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:46:19,794 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:46:29,909 - INFO - HTTP Request: POST https://api.telegram.org/bot6297587605:AAFqJxhe29mznwgarwmCIsVgm918EDkU7Vw/getUpdates "HTTP/1.1 200 OK"
-2025-01-19 15:49:07,652 - INFO - Бот успешно запущен
-2025-01-19 15:49:12,779 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 15:58:07,374 - INFO - Бот успешно запущен
-2025-01-19 15:58:42,568 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:26:37,321 - INFO - Бот успешно запущен
-2025-01-19 16:26:37,768 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:27:17,665 - INFO - Бот успешно запущен
-2025-01-19 16:27:44,969 - INFO - Бот успешно запущен
-2025-01-19 16:27:50,386 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:26,785 - INFO - Бот успешно запущен
-2025-01-19 16:28:38,082 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,274 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,354 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,433 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,515 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,596 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,668 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,752 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,837 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:28:38,913 - INFO - Пользователь 716309986 вызвал команду /start
-2025-01-19 16:29:59,782 - INFO - Бот успешно запущен
-2025-01-19 16:30:04,635 - INFO - Пользователь 716309986 вызвал команду /start
+2025-01-24 14:48:49,269 - INFO - Запуск бота...
+2025-01-24 14:48:49,662 - INFO - Бот успешно запущен
+2025-01-24 14:50:07,349 - INFO - Запуск бота...
+2025-01-24 14:50:07,764 - INFO - Бот успешно запущен
+2025-01-24 14:50:36,584 - INFO - Запуск бота...
+2025-01-24 14:50:36,997 - INFO - Бот успешно запущен
+2025-01-24 14:51:13,855 - INFO - Запуск бота...
+2025-01-24 14:51:14,244 - INFO - Бот успешно запущен
