@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>О нас</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <!-- Telegram Login Widget -->
+
+    <!-- Telegram Login Widget (можно оставить, если нужно) -->
     <script src="https://telegram.org/js/telegram-widget.js?7" 
             data-telegram-login="MyHackerBot" 
             data-size="large" 
@@ -12,6 +13,8 @@
             data-auth-url="/telegram_auth" 
             data-request-access="write">
     </script>
+
+    <!-- Если нужен ваш скрипт, можно подключить -->
     <script src="/static/js/script.js" defer></script>
 </head>
 <body>
@@ -19,42 +22,310 @@
         <img src="/static/images/logo.png" alt="Логотип" class="logo">
         <h1>О нас</h1>
     </header>
-    <div class="container">
-        <p>Приветствуем вас! Мы команда энтузиастов, стремящихся создавать лучшие решения для наших пользователей.</p>
-        <p>Авторизуйтесь через Telegram, чтобы узнать больше о наших возможностях.</p>
 
-        <!-- Галерея изображений -->
-        <h2>Наша Галерея</h2>
-        <div class="gallery">
-            <img src="/static/images/gallery1.jpg" alt="Галерея 1">
-            <img src="/static/images/gallery2.jpg" alt="Галерея 2">
-            <img src="/static/images/gallery3.jpg" alt="Галерея 3">
-            <img src="/static/images/gallery4.jpg" alt="Галерея 4">
-            <img src="/static/images/gallery5.jpg" alt="Галерея 5">
-            <!-- Добавьте больше изображений по необходимости -->
+    <div class="container">
+        <p>Приветствуем вас! Мы команда энтузиастов RipBrain, стремящихся создавать лучшие решения для наших пользователей.</p>
+        <p>Скоро мы пополним своё портфолио и тогда здесь появится что-то важное, а пока наслаждайтесь игрой!</p>
+
+        <!-- Минималистичная игра: Котик и мышки -->
+        <h2>Игра: Кормите котика</h2>
+        <div id="game-container">
+            <div id="cat-container">
+                <!-- Красные линии -->
+                <div class="red-border left"></div>
+                <div class="red-border right"></div>
+                <!-- Котик -->
+                <img src="/static/images/cat.png" alt="Котик" id="cat" style="width: 200px;">
+                <!-- Буква всегда на животе котика -->
+                <div id="letter-display"></div>
+            </div>
+            <!-- Сытость -->
+            <p id="score" style="margin-top: 20px;">Сытость котика: 0</p>
         </div>
+
+        <!-- Контейнер для анимаций (котики-дождь, капли) -->
+        <div id="animation-container"></div>
 
         <div class="navigation">
             <a href="/">На главную</a>
             <a href="/tariffs">Тарифы</a>
             <a href="/contact">Контакты</a>
         </div>
-        <!-- Кнопка авторизации -->
-        <a href="/telegram_auth" class="auth-button">Войти через Telegram</a>
-        <!-- Telegram Login Widget Button -->
-        <div class="telegram-login">
-            <script src="https://telegram.org/js/telegram-widget.js?7" 
-                    data-telegram-login="MyHackerBot" 
-                    data-size="large" 
-                    data-userpic="false" 
-                    data-auth-url="/telegram_auth" 
-                    data-request-access="write">
-            </script>
-        </div>
-        <button onclick="Telegram.WebApp.close()">Закрыть</button>
     </div>
+
     <footer>
         &copy; 2025 RipBrain. Все права защищены.
     </footer>
+
+    <!-- ===================== -->
+    <!--     ЛОГИКА ИГРЫ       -->
+    <!-- ===================== -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const gameContainer = document.getElementById("game-container");
+        const scoreElement = document.getElementById("score");
+        const cat = document.getElementById("cat");
+        const letterDisplay = document.getElementById("letter-display");
+        const animationContainer = document.getElementById("animation-container");
+
+        const redBorderLeft = document.querySelector(".red-border.left");
+        const redBorderRight = document.querySelector(".red-border.right");
+
+        // Параметры кота / игры
+        let score = 0;
+        const maxScore = 20;         // при достижении запускаем "дождь котиков"
+        const catGrowthFactor = 5;   // пикселей роста при +1 сытость
+        const maxCatWidth = 400;     // максимальная ширина кота
+        const letterLifetime = 15000; // буква меняется сама через 15сек, если не нажали
+        let letterTimer = null;      // таймер смены буквы
+
+        let gameActive = true;       // пока игра активна
+        let mouseInterval = null;    // интервал спавна мышек
+        let activeLetter = null;     // буква, которая отображается на животе кота
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        updateCatSize(200);    // начальный размер кота (и линий)
+        generateNewLetter();   // первая буква
+        startSpawningMice();   // начнём создавать мышек
+
+        // === ФУНКЦИИ ===
+
+        // Обновить счёт на экране
+        function updateScore() {
+            scoreElement.textContent = `Сытость котика: ${score}`;
+        }
+
+        // Генерация случайной заглавной буквы [A-Z]
+        function getRandomLetter() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            return letters[Math.floor(Math.random() * letters.length)];
+        }
+
+        // Установка нового размера кота + позиция красных линий
+        function updateCatSize(newWidth) {
+            if (newWidth > maxCatWidth) {
+                newWidth = maxCatWidth;
+            }
+            cat.style.width = newWidth + "px";
+
+            // Масштабируем букву в зависимости от ширины кота
+            const fontSize = newWidth / 8;
+            letterDisplay.style.fontSize = fontSize + "px";
+
+            // Позиционируем красные границы (чтобы они были "близко к котику")
+            const halfCat = newWidth / 2;
+            const offset = 5; // отступ от кота
+
+            // Левая граница
+            redBorderLeft.style.left = `calc(50% - ${halfCat + offset}px)`;
+            // Правая граница
+            redBorderRight.style.left = `calc(50% + ${halfCat}px)`;
+        }
+
+        // Проверка, есть ли хотя бы одна мышь между красными линиями
+        // Если есть, вернём эту мышку (DOM-элемент), иначе null
+        function getMouseInZone() {
+            const mice = document.querySelectorAll(".mouse");
+            for (let mouse of mice) {
+                if (isMouseBetweenRedLines(mouse)) {
+                    return mouse;
+                }
+            }
+            return null;
+        }
+
+        // Проверяем, находится ли конкретная мышь между линиями
+        function isMouseBetweenRedLines(mouseElement) {
+            const mouseRect = mouseElement.getBoundingClientRect();
+            const leftRect = redBorderLeft.getBoundingClientRect();
+            const rightRect = redBorderRight.getBoundingClientRect();
+
+            // Центр мыши по X
+            const mouseCenterX = mouseRect.left + mouseRect.width / 2;
+            // Условие: должен быть правее правого края левой границы и левее левого края правой границы
+            return (mouseCenterX > leftRect.right && mouseCenterX < rightRect.left);
+        }
+
+        // Создаём одну мышку
+        function spawnMouse() {
+            if (!gameActive) return;
+
+            const mouse = document.createElement("img");
+            mouse.src = "/static/images/mouse.png";
+            mouse.alt = "Мышь";
+            mouse.classList.add("mouse");
+
+            // Случайная позиция по Y
+            const containerHeight = gameContainer.clientHeight;
+            const mouseHeight = 80;
+            const maxTop = containerHeight - mouseHeight - 20;
+            const randomTop = Math.floor(Math.random() * maxTop) + 10;
+            mouse.style.top = randomTop + "px";
+
+            // Когда пробежка слева направо закончится, убираем мышь
+            mouse.addEventListener("animationend", function() {
+                if (mouse.parentElement) {
+                    mouse.classList.add("removing");
+                    mouse.addEventListener("transitionend", () => {
+                        mouse.remove();
+                    });
+                }
+            });
+
+            gameContainer.appendChild(mouse);
+        }
+
+        // Запуск периодического появления мышек
+        function startSpawningMice() {
+            spawnMouse();
+            mouseInterval = setInterval(spawnMouse, 2000);
+        }
+
+        // Остановка появления мышек
+        function stopSpawningMice() {
+            clearInterval(mouseInterval);
+        }
+
+        // Сгенерировать и показать новую букву на животе кота
+        function generateNewLetter() {
+            // Очищаем старый таймер, если был
+            if (letterTimer) {
+                clearTimeout(letterTimer);
+            }
+
+            // Генерируем букву
+            activeLetter = getRandomLetter();
+            letterDisplay.textContent = activeLetter;
+            letterDisplay.classList.remove("correct", "incorrect");
+            letterDisplay.style.display = "block";
+
+            // Через 15 секунд (если за это время не нажмут) — меняем на новую
+            letterTimer = setTimeout(() => {
+                generateNewLetter();
+            }, letterLifetime);
+        }
+
+        // Запуск анимации "дождь котиков" на 10 сек
+        function triggerCelebration() {
+            stopSpawningMice();
+            gameActive = false;
+
+            const celebrationTime = 10000; // 10 сек
+
+            // Создаём летящих котиков каждые 300 мс
+            let catRainInterval = setInterval(() => {
+                createFlyingCat();
+            }, 300);
+
+            // Создаём дождь из капель (одноразово)
+            for (let i = 0; i < 50; i++) {
+                let raindrop = document.createElement("div");
+                raindrop.classList.add("raindrop");
+                raindrop.style.left = Math.random() * 100 + "%";
+                raindrop.style.animationDelay = (Math.random() * 2) + "s";
+                animationContainer.appendChild(raindrop);
+            }
+
+            // Через 10 сек всё завершаем и сбрасываем игру
+            setTimeout(() => {
+                clearInterval(catRainInterval);
+                resetGame();
+            }, celebrationTime);
+        }
+
+        // Создать одного "летящего котика"
+        function createFlyingCat() {
+            let flyingCat = document.createElement("img");
+            flyingCat.src = "/static/images/cat.png";
+            flyingCat.alt = "Летящий котик";
+            flyingCat.classList.add("flying-cat");
+            flyingCat.style.left = Math.random() * 100 + "%";
+            flyingCat.style.top = "-60px";
+
+            flyingCat.addEventListener("animationend", () => {
+                flyingCat.remove();
+            });
+
+            animationContainer.appendChild(flyingCat);
+        }
+
+        // Сброс игры к начальному состоянию
+        function resetGame() {
+            // Удаляем все анимации из контейнера
+            animationContainer.innerHTML = "";
+
+            // Удаляем всех мышек
+            const allMice = document.querySelectorAll(".mouse");
+            allMice.forEach(mouse => {
+                mouse.classList.add("removing");
+                mouse.addEventListener("transitionend", () => {
+                    mouse.remove();
+                });
+            });
+
+            // Сбрасываем счёт и кота
+            score = 0;
+            updateScore();
+            updateCatSize(200);
+
+            // Меняем букву (чтобы начинать заново)
+            generateNewLetter();
+
+            // Активируем игру снова
+            gameActive = true;
+            startSpawningMice();
+        }
+
+        // === ОБРАБОТЧИК НАЖАТИЙ ===
+        document.addEventListener("keydown", function(event) {
+            if (!gameActive) return; // Игра неактивна — не реагируем
+
+            // Проверяем, нажата ли английская буква [A-Z]
+            const pressedKey = event.key.toUpperCase();
+            if (!pressedKey.match(/^[A-Z]$/)) return;
+
+            // "Кнопка срабатывает только если мышка между линиями"
+            const mouseInZone = getMouseInZone();
+            if (!mouseInZone) {
+                // Нет мыши между линиями — ничего не делаем
+                return;
+            }
+
+            // Есть мышь в зоне — проверяем правильность нажатия
+            if (pressedKey === activeLetter) {
+                // Правильная буква
+                letterDisplay.classList.add("correct");
+                // Увеличить счёт
+                score++;
+                updateScore();
+                // Увеличить кота
+                let currentWidth = parseInt(cat.style.width);
+                updateCatSize(currentWidth + catGrowthFactor);
+                // Удаляем мышку (съедена)
+                mouseInZone.remove();
+            } else {
+                // Неправильная буква
+                letterDisplay.classList.add("incorrect");
+                score = Math.max(0, score - 1); // не уходим в минус
+                updateScore();
+            }
+
+            // Смена буквы сразу
+            if (letterTimer) {
+                clearTimeout(letterTimer);
+            }
+            // Показываем цвет ~ 300мс, потом убираем и генерируем новую букву
+            setTimeout(() => {
+                letterDisplay.classList.remove("correct", "incorrect");
+                generateNewLetter();
+            }, 300);
+
+            // Проверка, не достигли ли maxScore
+            if (score >= maxScore) {
+                triggerCelebration();
+            }
+        });
+    });
+    </script>
 </body>
 </html>

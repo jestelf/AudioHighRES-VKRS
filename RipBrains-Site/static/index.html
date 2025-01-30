@@ -27,9 +27,11 @@
             <a href="/contact">Контакты</a>
         </div>
         <!-- Кнопка авторизации -->
-        <a href="/telegram_auth" class="auth-button">Войти через Telegram</a>
+        <div style="text-align: center;">
+            <a href="/telegram_auth" class="auth-button">Войти через Telegram</a>
+        </div>
         <!-- Telegram Login Widget Button -->
-        <div class="telegram-login">
+        <div class="telegram-login" style="text-align: center; margin-top: 20px;">
             <script src="https://telegram.org/js/telegram-widget.js?7" 
                     data-telegram-login="MyHackerBot" 
                     data-size="large" 
@@ -38,7 +40,11 @@
                     data-request-access="write">
             </script>
         </div>
-        <button onclick="Telegram.WebApp.close()">Закрыть</button>
+        <!-- Кнопка "Вернуться к боту" и QR-код -->
+        <div style="text-align: center; margin-top: 20px;">
+            <img src="/static/images/qr_code.png" alt="QR-код" class="qr-code">
+            <a href="https://web.telegram.org/k/#@AudioHighRes_bot" class="return-button">Вернуться к боту</a>
+        </div>
     </div>
     <footer>
         &copy; 2025 RipBrain. Все права защищены.
