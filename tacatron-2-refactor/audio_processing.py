@@ -1,4 +1,4 @@
-#audio_processing.py
+# Импорт необходимых библиотек
 import torch
 import numpy as np
 from scipy.signal import get_window
@@ -8,36 +8,36 @@ import librosa.util as librosa_util
 def window_sumsquare(window, n_frames, hop_length=200, win_length=800,
                      n_fft=800, dtype=np.float32, norm=None):
     """
-    # from librosa 0.6
-    Compute the sum-square envelope of a window function at a given hop length.
-
-    This is used to estimate modulation effects induced by windowing
-    observations in short-time fourier transforms.
-
-    Parameters
+    Вычисляет сумму квадратов окна для оценки модуляционных эффектов,
+    вызванных оконным преобразованием в STFT.
+    
+    Параметры:
     ----------
     window : string, tuple, number, callable, or list-like
-        Window specification, as in `get_window`
-
+        Спецификация окна, совместимая с `get_window`.
+    
     n_frames : int > 0
-        The number of analysis frames
-
+        Количество анализируемых кадров.
+    
     hop_length : int > 0
-        The number of samples to advance between frames
-
-    win_length : [optional]
-        The length of the window function.  By default, this matches `n_fft`.
-
+        Смещение между кадрами (шаг анализа).
+    
+    win_length : int, optional
+        Длина оконной функции. По умолчанию совпадает с `n_fft`.
+    
     n_fft : int > 0
-        The length of each analysis frame.
-
+        Длина каждого анализируемого кадра.
+    
     dtype : np.dtype
-        The data type of the output
-
-    Returns
-    -------
-    wss : np.ndarray, shape=`(n_fft + hop_length * (n_frames - 1))`
-        The sum-squared envelope of the window function
+        Тип данных выходного массива.
+    
+    norm : None or str
+        Норма для нормализации окна.
+    
+    Возвращает:
+    ----------
+    wss : np.ndarray
+        Массив с суммой квадратов оконной функции.
     """
     if win_length is None:
         win_length = n_fft
@@ -45,50 +45,95 @@ def window_sumsquare(window, n_frames, hop_length=200, win_length=800,
     n = n_fft + hop_length * (n_frames - 1)
     x = np.zeros(n, dtype=dtype)
 
-    # Compute the squared window at the desired length
+    # Вычисляем квадрат окна с нормализацией
     win_sq = get_window(window, win_length, fftbins=True)
     win_sq = librosa_util.normalize(win_sq, norm=norm)**2
     win_sq = librosa_util.pad_center(win_sq, n_fft)
 
-    # Fill the envelope
+    # Заполняем массив суммой квадратов оконной функции
     for i in range(n_frames):
         sample = i * hop_length
         x[sample:min(n, sample + n_fft)] += win_sq[:max(0, min(n_fft, n - sample))]
+    
     return x
 
 
 def griffin_lim(magnitudes, stft_fn, n_iters=30):
     """
-    PARAMS
-    ------
-    magnitudes: spectrogram magnitudes
-    stft_fn: STFT class with transform (STFT) and inverse (ISTFT) methods
+    Алгоритм Гриффина-Лима для фазовой реконкилизации из амплитуд спектрограммы.
+    Используется для восстановления аудиосигнала из его спектрального представления.
+    
+    Параметры:
+    ----------
+    magnitudes : torch.Tensor
+        Спектрограммы амплитуд (без фазы).
+    
+    stft_fn : объект STFT
+        Класс STFT с методами преобразования (STFT) и обратного преобразования (ISTFT).
+    
+    n_iters : int
+        Количество итераций для обновления фазы.
+    
+    Возвращает:
+    ----------
+    signal : torch.Tensor
+        Восстановленный аудиосигнал.
     """
-
+    # Инициализируем случайные углы (фазы)
     angles = np.angle(np.exp(2j * np.pi * np.random.rand(*magnitudes.size())))
     angles = angles.astype(np.float32)
     angles = torch.autograd.Variable(torch.from_numpy(angles))
+    
+    # Первоначальное восстановление сигнала
     signal = stft_fn.inverse(magnitudes, angles).squeeze(1)
 
+    # Итеративное уточнение фазового спектра
     for i in range(n_iters):
-        _, angles = stft_fn.transform(signal)
-        signal = stft_fn.inverse(magnitudes, angles).squeeze(1)
+        _, angles = stft_fn.transform(signal)  # Получаем новые фазы из STFT
+        signal = stft_fn.inverse(magnitudes, angles).squeeze(1)  # Восстанавливаем сигнал
+    
     return signal
 
 
 def dynamic_range_compression(x, C=1, clip_val=1e-5):
     """
-    PARAMS
-    ------
-    C: compression factor
+    Логарифмическое сжатие динамического диапазона для нормализации амплитуды.
+    Часто используется в аудиопредобработке для обучения нейросетей.
+    
+    Параметры:
+    ----------
+    x : torch.Tensor
+        Входной аудиосигнал или спектрограмма.
+    
+    C : float
+        Коэффициент сжатия.
+    
+    clip_val : float
+        Минимальное значение, чтобы избежать логарифма от нуля.
+    
+    Возвращает:
+    ----------
+    torch.Tensor
+        Сжатый сигнал.
     """
     return torch.log(torch.clamp(x, min=clip_val) * C)
 
 
 def dynamic_range_decompression(x, C=1):
     """
-    PARAMS
-    ------
-    C: compression factor used to compress
+    Обратное логарифмическое сжатие для восстановления динамического диапазона.
+    
+    Параметры:
+    ----------
+    x : torch.Tensor
+        Сжатый входной сигнал.
+    
+    C : float
+        Коэффициент, использованный при сжатии.
+    
+    Возвращает:
+    ----------
+    torch.Tensor
+        Восстановленный сигнал.
     """
     return torch.exp(x) / C
