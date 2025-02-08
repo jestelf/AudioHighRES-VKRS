@@ -131,7 +131,7 @@ def main():
     latent_dim = 64
     learning_rate = 1e-3
     batch_size = 8
-    num_epochs = 20
+    num_epochs = 15
     # Ограничение длины аудио: 4 секунды при 16 кГц
     max_length = 4 * 16000
     
