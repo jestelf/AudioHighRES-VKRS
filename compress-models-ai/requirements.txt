@@ -1,0 +1,9 @@
+torch
+torchaudio
+datasets
+soundfile
+tqdm
+numpy
+flask
+pytest
+librosa
