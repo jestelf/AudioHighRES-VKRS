@@ -1,0 +1,21 @@
+2025-02-09 15:11:13,488 [INFO] Логирование инициализировано.
+2025-02-09 15:11:13,488 [INFO] Backup folder: backup\2025-02-09_15-11-13
+2025-02-09 15:11:13,488 [INFO] CSV лог инициализирован: backup\2025-02-09_15-11-13\training_metrics.csv
+2025-02-09 15:11:13,519 [INFO] Using GPU: NVIDIA GeForce RTX 3060
+2025-02-09 15:11:13,519 [INFO] Training parameters: {'in_channels': 1, 'hidden_channels': 640, 'latent_dim': 64, 'num_encoder_layers': 4, 'num_decoder_layers': 4, 'use_batch_norm': True, 'dropout_rate': 0.0, 'learning_rate': 0.0001, 'batch_size': 10, 'num_epochs': 20}
+2025-02-09 15:11:14,994 [INFO] Starting training on LibriSpeech subset...
+2025-02-09 15:11:27,548 [INFO] Epoch [1/20], Average Loss: 0.869573
+2025-02-09 15:11:40,749 [INFO] Epoch [2/20], Average Loss: 0.648415 (Improved by 0.221158)
+2025-02-09 15:11:54,226 [INFO] Epoch [3/20], Average Loss: 0.255163 (Improved by 0.393252)
+2025-02-09 15:12:07,461 [INFO] Epoch [4/20], Average Loss: 0.076522 (Improved by 0.178641)
+2025-02-09 15:12:20,124 [INFO] Epoch [5/20], Average Loss: 0.024027 (Improved by 0.052495)
+2025-02-09 15:12:32,765 [INFO] Epoch [6/20], Average Loss: 0.013943 (Improved by 0.010084)
+2025-02-09 15:12:45,340 [INFO] Epoch [7/20], Average Loss: 0.011259 (Improved by 0.002684)
+2025-02-09 15:12:57,961 [INFO] Epoch [8/20], Average Loss: 0.009212 (Improved by 0.002047)
+2025-02-09 15:13:10,669 [INFO] Epoch [9/20], Average Loss: 0.009493 (Worsened by 0.000282)
+2025-02-09 15:13:23,126 [INFO] Epoch [10/20], Average Loss: 0.009082 (Improved by 0.000412)
+2025-02-09 15:13:35,595 [INFO] Epoch [11/20], Average Loss: 0.007289 (Improved by 0.001793)
+2025-02-09 15:13:48,340 [INFO] Epoch [12/20], Average Loss: 0.005384 (Improved by 0.001905)
+2025-02-09 15:14:00,841 [INFO] Epoch [13/20], Average Loss: 0.004197 (Improved by 0.001187)
+2025-02-09 15:14:13,491 [INFO] Epoch [14/20], Average Loss: 0.004140 (Improved by 0.000057)
+2025-02-09 15:14:25,880 [INFO] Epoch [15/20], Average Loss: 0.014055 (Worsened by 0.009915)

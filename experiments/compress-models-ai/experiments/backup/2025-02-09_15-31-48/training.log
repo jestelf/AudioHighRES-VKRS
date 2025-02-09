@@ -1,0 +1,6 @@
+2025-02-09 15:31:48,245 [INFO] Логирование инициализировано.
+2025-02-09 15:31:48,245 [INFO] Backup folder: backup\2025-02-09_15-31-48
+2025-02-09 15:31:48,245 [INFO] CSV лог инициализирован: backup\2025-02-09_15-31-48\training_metrics.csv
+2025-02-09 15:31:48,277 [INFO] Using GPU: NVIDIA GeForce RTX 3060
+2025-02-09 15:31:48,277 [INFO] Training parameters: {'in_channels': 1, 'hidden_channels': 640, 'latent_dim': 64, 'num_encoder_layers': 4, 'num_decoder_layers': 4, 'use_batch_norm': False, 'dropout_rate': 0.1, 'learning_rate': 0.0001, 'batch_size': 10, 'num_epochs': 20, 'use_lr_scheduler': True, 'lr_scheduler_factor': 0.5, 'lr_scheduler_patience': 5, 'lr_scheduler_min_lr': 1e-06, 'lr_scheduler_verbose': True}
+2025-02-09 15:31:49,588 [INFO] Starting training on LibriSpeech subset...

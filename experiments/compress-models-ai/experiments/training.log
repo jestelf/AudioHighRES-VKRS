@@ -1,0 +1,31 @@
+2025-02-09 14:51:08,301 [INFO] Логирование инициализировано.
+2025-02-09 14:51:08,301 [INFO] CSV лог: training_metrics.csv инициализирован.
+2025-02-09 14:51:08,333 [INFO] Using GPU: NVIDIA GeForce RTX 3060
+2025-02-09 14:51:09,592 [INFO] Starting training on LibriSpeech subset...
+2025-02-09 14:51:20,497 [INFO] Epoch [1/20], Average Loss: 0.071580
+2025-02-09 14:51:32,428 [INFO] Epoch [2/20], Average Loss: 0.017711 (Improved by 0.053868)
+2025-02-09 14:51:45,169 [INFO] Epoch [3/20], Average Loss: 0.008209 (Improved by 0.009502)
+2025-02-09 14:51:57,302 [INFO] Epoch [4/20], Average Loss: 0.007511 (Improved by 0.000698)
+2025-02-09 14:52:09,240 [INFO] Epoch [5/20], Average Loss: 0.007240 (Improved by 0.000271)
+2025-02-09 14:52:21,911 [INFO] Epoch [6/20], Average Loss: 0.006733 (Improved by 0.000507)
+2025-02-09 14:52:34,378 [INFO] Epoch [7/20], Average Loss: 0.005556 (Improved by 0.001177)
+2025-02-09 14:52:46,368 [INFO] Epoch [8/20], Average Loss: 0.003297 (Improved by 0.002258)
+2025-02-09 14:52:58,541 [INFO] Epoch [9/20], Average Loss: 0.001988 (Improved by 0.001310)
+2025-02-09 14:53:10,206 [INFO] Epoch [10/20], Average Loss: 0.001549 (Improved by 0.000438)
+2025-02-09 14:53:22,311 [INFO] Epoch [11/20], Average Loss: 0.001339 (Improved by 0.000210)
+2025-02-09 14:53:34,357 [INFO] Epoch [12/20], Average Loss: 0.001235 (Improved by 0.000104)
+2025-02-09 14:53:46,730 [INFO] Epoch [13/20], Average Loss: 0.001158 (Improved by 0.000077)
+2025-02-09 14:54:00,013 [INFO] Epoch [14/20], Average Loss: 0.001097 (Improved by 0.000061)
+2025-02-09 14:54:12,740 [INFO] Epoch [15/20], Average Loss: 0.001040 (Improved by 0.000057)
+2025-02-09 14:54:25,597 [INFO] Epoch [16/20], Average Loss: 0.000982 (Improved by 0.000058)
+2025-02-09 14:54:39,033 [INFO] Epoch [17/20], Average Loss: 0.000941 (Improved by 0.000041)
+2025-02-09 14:54:51,895 [INFO] Epoch [18/20], Average Loss: 0.000878 (Improved by 0.000063)
+2025-02-09 14:55:04,131 [INFO] Epoch [19/20], Average Loss: 0.000836 (Improved by 0.000042)
+2025-02-09 14:55:16,338 [INFO] Epoch [20/20], Average Loss: 0.000775 (Improved by 0.000061)
+2025-02-09 14:55:16,338 [INFO] Testing model and saving examples to output folder...
+2025-02-09 14:55:21,021 [INFO] Saved: output\original_0.wav and output\reconstructed_0.wav
+2025-02-09 14:55:21,544 [INFO] Saved: output\original_1.wav and output\reconstructed_1.wav
+2025-02-09 14:55:21,992 [INFO] Saved: output\original_2.wav and output\reconstructed_2.wav
+2025-02-09 14:55:22,423 [INFO] Saved: output\original_3.wav and output\reconstructed_3.wav
+2025-02-09 14:55:22,803 [INFO] Saved: output\original_4.wav and output\reconstructed_4.wav
+2025-02-09 14:55:23,171 [INFO] Saved: output\original_5.wav and output\reconstructed_5.wav
