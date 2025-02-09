@@ -119,6 +119,7 @@ def telegram_auth():
     data = request.args.to_dict()
     return redirect("/")  # Перенаправляем на защищенную страницу
     
+
     '''
     # Сохранение данных пользователя
     user = {
@@ -147,11 +148,10 @@ def verify_auth(auth_data):
     """
     Верификация данных авторизации от Telegram
     """
-    token = os.getenv('TELEGRAM_TOKEN')  # Ваш бот-токен
-    if not token:
+    if not BOT_TOKEN:
         print("TELEGRAM_TOKEN не установлен в переменных окружения.")
         return False
-    secret_key = hashlib.sha256(token.encode()).digest()
+    secret_key = hashlib.sha256(BOT_TOKEN.encode()).digest()
 
     hash_received = auth_data.pop('hash', None)
     if hash_received is None:
