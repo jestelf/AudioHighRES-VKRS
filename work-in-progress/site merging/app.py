@@ -69,8 +69,8 @@ def save_user(user_data):
 def index():
     """ Главная страница с Telegram Login Widget """
     if "user" in session:
-        return redirect("/homepage")  # Если уже авторизован, перенаправляем
-    return render_template('index.html', nonce=nonce)
+        return redirect("/")  # Если уже авторизован, перенаправляем
+    return render_template('homepage.html', nonce=nonce)
 
 @app.route("/auth", methods=["GET"])
 def auth():
@@ -79,46 +79,31 @@ def auth():
 
     if check_telegram_auth(data):
         session["user"] = data  # Сохраняем данные пользователя в сессии
-        return redirect("/homepage")  # Перенаправляем на защищенную страницу
+        return redirect("/")  # Перенаправляем на защищенную страницу
     else:
         return "Ошибка авторизации", 403
 
 
-@app.route('/homepage')
+@app.route('/')
 def homepage():
-    if "user" not in session:
-        return redirect("/")
-    
     return send_from_directory('static', 'homepage.html')
 
 
 
 @app.route('/about')
 def about():
-    if "user" not in session:
-        return redirect("/")
-    
     return send_from_directory('static', 'about.html')
 
 @app.route('/tariffs')
 def tariffs():
-    if "user" not in session:
-        return redirect("/")
-    
     return send_from_directory('static', 'tariffs.html')
 
 @app.route('/contact')
 def contact():
-    if "user" not in session:
-        return redirect("/")
-    
     return send_from_directory('static', 'contact.html')
 
 @app.route('/save_user', methods=['POST'])
 def save_user_route():
-    if "user" not in session:
-        return redirect("/")
-    
     data = request.json
     if not data:
         return jsonify({"status": "error", "message": "No data provided"}), 400
@@ -131,16 +116,9 @@ def telegram_auth():
     auth_data = request.args.to_dict()
     
     # Верификация данных
-    if "user" not in session:
-        return redirect("/")
-    
     data = request.args.to_dict()
-    if check_telegram_auth(data):
-        session["user"] = data  # Сохраняем данные пользователя в сессии
-        return redirect("/homepage")  # Перенаправляем на защищенную страницу
-    else:
-        return "Ошибка авторизации", 403
-
+    return redirect("/")  # Перенаправляем на защищенную страницу
+    
     '''
     # Сохранение данных пользователя
     user = {

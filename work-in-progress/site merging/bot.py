@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, types, F
 
 TOKEN = "6297587605:AAH_ejse0L50eAuk-7Te2fEGS38tW8E5v3c"
-WEB_APP_URL = "https://cc8e-85-192-61-46.ngrok-free.app"  # Укажите реальный URL или ngrok
+WEB_APP_URL = "https://8273-85-192-61-46.ngrok-free.app"  # Укажите реальный URL или ngrok
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
