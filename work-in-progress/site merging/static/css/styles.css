@@ -1,0 +1,501 @@
+/* styles.css */
+
+/* Общие настройки */
+:root {
+    --primary-color: #00ff00;
+    --background-color: #0d0d0d;
+    --text-color: #00ff00;
+    --secondary-color: #1e90ff;
+    --card-background: #1a1a1a;
+    --button-background: #333;
+    --button-hover-background: #00ff00;
+    --button-text-color: #0d0d0d;
+    --link-color: #1e90ff;
+}
+
+body.light-theme {
+    --primary-color: #1e90ff;
+    --background-color: #f0f0f0;
+    --text-color: #0d0d0d;
+    --secondary-color: #ff5722;
+    --card-background: #ffffff;
+    --button-background: #1e90ff;
+    --button-hover-background: #ff5722;
+    --button-text-color: #ffffff;
+    --link-color: #ff5722;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для контента */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Шапка и подвал */
+header, footer {
+    text-align: center;
+    padding: 20px 0;
+}
+
+header {
+    border-bottom: 2px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer {
+    border-top: 2px solid var(--primary-color);
+    margin-top: auto;
+}
+
+/* Заголовки */
+h1, h2, h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+/* Параграфы */
+p {
+    margin-bottom: 20px;
+}
+
+/* Ссылки */
+a {
+    color: var(--link-color);
+    text-decoration: none;
+    margin: 0 15px;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+/* Кнопки */
+button, .auth-button {
+    background-color: var(--button-background);
+    color: var(--text-color);
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 16px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+button:hover:not(:disabled), .auth-button:hover {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+button:disabled {
+    background-color: #555;
+    border-color: #555;
+    cursor: not-allowed;
+}
+
+/* Навигация */
+.navigation {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.navigation a {
+    font-size: 18px;
+    display: inline-block;
+    margin: 0 10px;
+}
+
+/* Карточки */
+.card {
+    background-color: var(--card-background);
+    border: 2px solid var(--primary-color);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 10px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+.card img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    display: block;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 255, 0, 0.3);
+}
+
+/* Контактные фотографии */
+.contact-photo {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+
+/* Приветственное сообщение */
+.welcome-message {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: fadeIn 2s ease-in-out;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Форма авторизации */
+.auth-form {
+    background-color: var(--card-background);
+    border: 2px solid var(--primary-color);
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+    animation: slideIn 1s ease-in-out;
+}
+
+/* Поля ввода */
+input[type="text"], input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    background-color: #1a1a1a;
+    color: var(--text-color);
+}
+
+input::placeholder {
+    color: #666;
+}
+
+button.submit-btn {
+    width: 100%;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+    .logo {
+        width: 60px !important;
+    }
+
+    .card img {
+        max-width: 250px;
+    }
+
+    .contact-photo {
+        width: 100px;
+        height: 100px;
+    }
+
+    .navigation a {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .gallery img {
+        height: 150px;
+    }
+
+    .auth-button {
+        margin: 20px auto;
+    }
+
+    .telegram-login {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        width: 40px !important;
+    }
+
+    .card img {
+        max-width: 200px;
+    }
+
+    .gallery img {
+        height: 120px;
+    }
+}
+
+/* Кнопка авторизации */
+.auth-button {
+    display: inline-block;
+    background-color: var(--button-background);
+    color: var(--text-color);
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.auth-button:hover {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+/* Галерея изображений */
+.gallery {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 20px 0;
+}
+
+.gallery img {
+    height: 200px;
+    border-radius: 10px;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+}
+
+.gallery img:hover {
+    transform: scale(1.1);
+}
+
+/* Кнопка "Вернуться к боту" */
+.return-button {
+    display: inline-block;
+    background-color: var(--button-background);
+    color: var(--text-color);
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 20px;
+}
+
+.return-button:hover {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+/* QR-код */
+.qr-code {
+    display: block;
+    margin: -20px auto;
+    width: 350px;
+    height: 450px;
+}
+
+/* ====================== */
+/*      СТИЛИ ИГРЫ       */
+/* ====================== */
+
+#game-container {
+    position: relative;
+    text-align: center;
+    height: 300px; /* Устанавливаем высоту контейнера для игры */
+    display: flex;
+    align-items: flex-end; /* Размещаем котика снизу */
+    justify-content: center;
+    position: relative;
+}
+
+/* Контейнер кота и красных границ */
+#cat-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Котик */
+#cat {
+    transition: width 0.3s ease-in-out;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none; /* Отключаем кликабельность котика */
+}
+
+/* Красные границы */
+.red-border {
+    position: absolute;
+    top: 20%;
+    bottom: 20%;
+    width: 10px;
+    background-color: red;
+    z-index: 1;
+}
+.red-border.left { /* Горизонталь через JS */ }
+.red-border.right { /* Тоже через JS */ }
+
+/* Буква (всегда на животе кота) */
+#letter-display {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    color: black;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none; /* Появляется при генерации */
+    z-index: 2;
+    /* Размер шрифта JS меняет динамически */
+}
+
+#letter-display.correct {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+#letter-display.incorrect {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* Мышки */
+.mouse {
+    position: absolute;
+    width: 80px;
+    height: auto;
+    cursor: pointer;
+    animation: moveMouse 5s linear forwards;
+}
+
+@keyframes moveMouse {
+    0% {
+        left: -100px; 
+    }
+    100% {
+        left: 110%;
+    }
+}
+
+/* Плавное удаление мышек */
+.mouse.removing {
+    animation: removeMouse 0.5s forwards;
+}
+
+@keyframes removeMouse {
+    to {
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+
+/* Счёт */
+#score {
+    margin-top: 20px;
+}
+
+/* Контейнер для праздничных анимаций (дождь, котики) */
+#animation-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+/* Летящие котики */
+.flying-cat {
+    position: absolute;
+    width: 50px;
+    height: auto;
+    pointer-events: none;
+    opacity: 0.8;
+    animation: catRain 10s linear forwards;
+}
+
+@keyframes catRain {
+    0% {
+        top: -50px;
+        transform: rotate(0deg);
+        opacity: 0.8;
+    }
+    100% {
+        top: 100vh;
+        transform: rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Капли дождя */
+.raindrop {
+    position: absolute;
+    width: 2px;
+    height: 10px;
+    background: var(--secondary-color);
+    top: -10px;
+    pointer-events: none;
+    animation: rain 5s linear infinite;
+}
+
+@keyframes rain {
+    0% {
+        top: -10px;
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        top: 100vh;
+        opacity: 0;
+    }
+}
