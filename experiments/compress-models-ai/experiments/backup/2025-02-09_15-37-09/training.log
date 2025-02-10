@@ -1,0 +1,60 @@
+2025-02-09 15:37:09,827 [INFO] Логирование инициализировано.
+2025-02-09 15:37:09,843 [INFO] Backup folder: backup\2025-02-09_15-37-09
+2025-02-09 15:37:09,843 [INFO] CSV лог инициализирован: backup\2025-02-09_15-37-09\training_metrics.csv
+2025-02-09 15:37:09,875 [INFO] Using GPU: NVIDIA GeForce RTX 3060
+2025-02-09 15:37:09,875 [INFO] Training parameters: {'in_channels': 1, 'hidden_channels': 640, 'latent_dim': 64, 'num_encoder_layers': 3, 'num_decoder_layers': 3, 'use_batch_norm': False, 'dropout_rate': 0.1, 'learning_rate': 0.0001, 'batch_size': 20, 'num_epochs': 40, 'use_lr_scheduler': True, 'lr_scheduler_factor': 0.5, 'lr_scheduler_patience': 5, 'lr_scheduler_min_lr': 1e-06, 'lr_scheduler_verbose': True}
+2025-02-09 15:37:11,227 [INFO] Starting training on LibriSpeech subset...
+2025-02-09 15:37:21,261 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:37:21,261 [INFO] Epoch [1/40], Average Loss: 0.012529
+2025-02-09 15:37:32,740 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:37:32,740 [INFO] Epoch [2/40], Average Loss: 0.006773 (Improved by 0.005756)
+2025-02-09 15:37:44,794 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:37:44,794 [INFO] Epoch [3/40], Average Loss: 0.003566 (Improved by 0.003207)
+2025-02-09 15:37:55,941 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:37:55,941 [INFO] Epoch [4/40], Average Loss: 0.002434 (Improved by 0.001132)
+2025-02-09 15:38:07,122 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:38:07,122 [INFO] Epoch [5/40], Average Loss: 0.002032 (Improved by 0.000402)
+2025-02-09 15:38:18,688 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:38:18,688 [INFO] Epoch [6/40], Average Loss: 0.001798 (Improved by 0.000233)
+2025-02-09 15:38:29,281 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:38:29,281 [INFO] Epoch [7/40], Average Loss: 0.001605 (Improved by 0.000194)
+2025-02-09 15:38:40,792 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:38:40,792 [INFO] Epoch [8/40], Average Loss: 0.001432 (Improved by 0.000172)
+2025-02-09 15:38:52,333 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:38:52,333 [INFO] Epoch [9/40], Average Loss: 0.001281 (Improved by 0.000151)
+2025-02-09 15:39:04,054 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:04,054 [INFO] Epoch [10/40], Average Loss: 0.001160 (Improved by 0.000121)
+2025-02-09 15:39:15,223 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:15,223 [INFO] Epoch [11/40], Average Loss: 0.001063 (Improved by 0.000097)
+2025-02-09 15:39:25,891 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:25,891 [INFO] Epoch [12/40], Average Loss: 0.000978 (Improved by 0.000085)
+2025-02-09 15:39:37,160 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:37,160 [INFO] Epoch [13/40], Average Loss: 0.000901 (Improved by 0.000077)
+2025-02-09 15:39:48,370 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:48,370 [INFO] Epoch [14/40], Average Loss: 0.000816 (Improved by 0.000085)
+2025-02-09 15:39:59,557 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:39:59,557 [INFO] Epoch [15/40], Average Loss: 0.000733 (Improved by 0.000083)
+2025-02-09 15:40:11,153 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:40:11,153 [INFO] Epoch [16/40], Average Loss: 0.000658 (Improved by 0.000075)
+2025-02-09 15:40:22,490 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:40:22,490 [INFO] Epoch [17/40], Average Loss: 0.000597 (Improved by 0.000061)
+2025-02-09 15:40:33,508 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:40:33,508 [INFO] Epoch [18/40], Average Loss: 0.000550 (Improved by 0.000047)
+2025-02-09 15:40:44,193 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:40:44,193 [INFO] Epoch [19/40], Average Loss: 0.000515 (Improved by 0.000036)
+2025-02-09 15:40:54,642 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:40:54,642 [INFO] Epoch [20/40], Average Loss: 0.000484 (Improved by 0.000030)
+2025-02-09 15:41:05,358 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:41:05,358 [INFO] Epoch [21/40], Average Loss: 0.000461 (Improved by 0.000023)
+2025-02-09 15:41:16,958 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:41:16,958 [INFO] Epoch [22/40], Average Loss: 0.000441 (Improved by 0.000020)
+2025-02-09 15:41:28,477 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:41:28,477 [INFO] Epoch [23/40], Average Loss: 0.000424 (Improved by 0.000016)
+2025-02-09 15:41:39,366 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:41:39,366 [INFO] Epoch [24/40], Average Loss: 0.000410 (Improved by 0.000014)
+2025-02-09 15:41:50,236 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:41:50,236 [INFO] Epoch [25/40], Average Loss: 0.000398 (Improved by 0.000012)
+2025-02-09 15:42:01,241 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:42:01,241 [INFO] Epoch [26/40], Average Loss: 0.000386 (Improved by 0.000012)
+2025-02-09 15:42:12,091 [INFO] New learning rate after scheduler step: 0.0001
+2025-02-09 15:42:12,091 [INFO] Epoch [27/40], Average Loss: 0.000377 (Improved by 0.000009)
