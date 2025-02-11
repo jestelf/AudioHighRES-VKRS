@@ -1,7 +1,10 @@
+<!-- Страница тарифов (tariffs.html) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- Добавляем мета-тег для адаптивности на мобильных устройствах -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Тарифы</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <!-- Telegram Login Widget -->
@@ -24,6 +27,7 @@
             <img src="/static/images/tariff1.png" alt="Бесплатный тариф">
             <h2>Free</h2>
             <p>Основные функции для начинающих пользователей. Включает очередь на синтез и ограниченный план на день.</p>
+            <!-- Кнопка уже заблокирована -->
             <button disabled>Купить</button>
         </div>
 
@@ -31,14 +35,16 @@
             <img src="/static/images/tariff2.png" alt="Стандартный тариф">
             <h2>Pro</h2>
             <p>Расширенные функции для продвинутых пользователей. Своя очередь и больше свободных линий очереди. План на день расширен.</p>
-            <button>Купить</button>
+            <!-- Блокируем кнопку -->
+            <button disabled>Купить</button>
         </div>
 
         <div class="card">
             <img src="/static/images/tariff3.png" alt="Премиум тариф">
             <h2>Full</h2>
             <p>Полный доступ ко всем функциям и приоритетная поддержка.</p>
-            <button>Купить</button>
+            <!-- Блокируем кнопку -->
+            <button disabled>Купить</button>
         </div>
 
         <div class="navigation">
