@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import logging
+import time
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -13,9 +14,65 @@ from tqdm import tqdm
 from xttsv2.model import XTTS2Model
 from xttsv2.data import text_to_token_ids
 
-# (logging и device без изменений)
+# Настройка логирования
+logging.basicConfig(
+    filename='training.log',
+    filemode='w',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
-def save_training_config(config_dict, path='training_config.json'):  # NEW
+# Определение устройства
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Используется устройство: {device}")
+logging.info(f"Используется устройство: {device}")
+torch.backends.cudnn.benchmark = True
+
+# Датасет для XTTS2
+class XTTS2Dataset(Dataset):
+    def __init__(self, jsonl_file, features_dir):
+        self.records = []
+        self.features_dir = features_dir
+
+        with open(jsonl_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                try:
+                    record = json.loads(line)
+                    audio_path = os.path.join(features_dir, os.path.basename(record['audio_features']))
+                    if os.path.exists(audio_path):
+                        self.records.append({
+                            'audio_features': audio_path,
+                            'text': record['text']
+                        })
+                except Exception as e:
+                    print(f"Ошибка при загрузке записи: {e}")
+
+    def __len__(self):
+        return len(self.records)
+
+    def __getitem__(self, idx):
+        try:
+            record = self.records[idx]
+            audio_features = np.load(record['audio_features'])
+            text = record['text']
+
+            audio_features = torch.tensor(audio_features, dtype=torch.float32)
+            text_tokens = torch.tensor(text_to_token_ids(text), dtype=torch.long)
+            return audio_features, text_tokens
+        except Exception as e:
+            print(f"Ошибка в записи {idx}: {e}")
+            return torch.zeros(1), torch.zeros(1)
+
+# Функция для формирования батчей
+def collate_fn(batch):
+    audio_features = [item[0] for item in batch]
+    text_tokens = [item[1] for item in batch]
+    audio_features = pad_sequence(audio_features, batch_first=True, padding_value=0)
+    text_tokens = pad_sequence(text_tokens, batch_first=True, padding_value=0)
+    return audio_features, text_tokens
+
+# Сохранение параметров обучения
+def save_training_config(config_dict, path='training_config.json'):
     try:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=4, ensure_ascii=False)
@@ -23,10 +80,10 @@ def save_training_config(config_dict, path='training_config.json'):  # NEW
     except Exception as e:
         logging.error(f"Ошибка при сохранении конфигурации: {e}")
 
+# Основная функция
 def main():
     logging.info("Инициализация обучения...")
 
-    # NEW: параметры обучения
     jsonl_file = 'D:/TrainerModel/Dataset/podcast_large.jsonl'
     features_dir = 'D:/TrainerModel/Dataset/features'
     checkpoint_path = 'D:/XTTS-v2/xtts2_finetuned.pth'
@@ -37,7 +94,7 @@ def main():
     num_epochs = 20
     learning_rate = 1e-4
 
-    # NEW: сохранить конфигурацию
+    # Сохранение конфигурации
     training_config = {
         "jsonl_file": jsonl_file,
         "features_dir": features_dir,
@@ -52,7 +109,7 @@ def main():
     }
     save_training_config(training_config)
 
-    # Датасет и DataLoader
+    # Подготовка данных
     dataset = XTTS2Dataset(jsonl_file, features_dir)
     val_size = int(validation_split * len(dataset))
     train_size = len(dataset) - val_size
@@ -72,8 +129,11 @@ def main():
     best_val_loss = float('inf')
     train_losses = []
     val_losses = []
+    early_stopping_patience = 5
+    epochs_no_improve = 0
 
     for epoch in range(num_epochs):
+        epoch_start_time = time.time()
         model.train()
         running_loss = 0.0
 
@@ -102,16 +162,18 @@ def main():
 
         val_loss /= len(val_loader)
         train_loss_avg = running_loss / len(train_loader)
+
         print(f"Эпоха {epoch + 1}: Обучение Loss={train_loss_avg:.4f} | Валидация Loss={val_loss:.4f}")
         logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
+        logging.info(f"Время эпохи {epoch + 1}: {time.time() - epoch_start_time:.2f} сек.")
 
         train_losses.append(train_loss_avg)
         val_losses.append(val_loss)
-
         scheduler.step()
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+            epochs_no_improve = 0
             torch.save({
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
@@ -120,8 +182,15 @@ def main():
             }, checkpoint_path)
             print(f"Модель сохранена: {checkpoint_path}")
             logging.info(f"Лучшая модель сохранена на эпохе {epoch + 1} с val_loss={val_loss:.4f}")
+        else:
+            epochs_no_improve += 1
+            logging.info(f"Нет улучшения ({epochs_no_improve}/{early_stopping_patience})")
+            if epochs_no_improve >= early_stopping_patience:
+                print(f"Ранняя остановка на эпохе {epoch + 1}")
+                logging.info("Ранняя остановка обучения из-за отсутствия улучшений.")
+                break
 
-    # Визуализация
+    # Визуализация потерь
     plt.figure(figsize=(10, 6))
     plt.plot(train_losses, label='Train Loss')
     plt.plot(val_losses, label='Validation Loss')
