@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import time
+import requests  # NEW
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -12,8 +13,8 @@ import torch.optim as optim
 from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm
 from xttsv2.model import XTTS2Model
-from xttsv2.data import text_to_token_ids, token_ids_to_text  # NEW
-from torch.utils.tensorboard import SummaryWriter  # NEW
+from xttsv2.data import text_to_token_ids, token_ids_to_text
+from torch.utils.tensorboard import SummaryWriter
 
 # Настройка логирования
 logging.basicConfig(
@@ -22,6 +23,19 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+# Telegram-бот уведомления
+BOT_TOKEN = ""  
+CHAT_ID = ""      
+
+def send_telegram_message(text):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        data = {"chat_id": CHAT_ID, "text": text}
+        requests.post(url, data=data)
+        logging.info("Уведомление отправлено в Telegram.")
+    except Exception as e:
+        logging.warning(f"Ошибка отправки уведомления: {e}")
 
 # Определение устройства
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -34,7 +48,6 @@ class XTTS2Dataset(Dataset):
     def __init__(self, jsonl_file, features_dir):
         self.records = []
         self.features_dir = features_dir
-
         with open(jsonl_file, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
@@ -56,7 +69,6 @@ class XTTS2Dataset(Dataset):
             record = self.records[idx]
             audio_features = np.load(record['audio_features'])
             text = record['text']
-
             audio_features = torch.tensor(audio_features, dtype=torch.float32)
             text_tokens = torch.tensor(text_to_token_ids(text), dtype=torch.long)
             return audio_features, text_tokens
@@ -64,7 +76,7 @@ class XTTS2Dataset(Dataset):
             print(f"Ошибка в записи {idx}: {e}")
             return torch.zeros(1), torch.zeros(1)
 
-# Батч
+# Коллатор
 def collate_fn(batch):
     audio_features = [item[0] for item in batch]
     text_tokens = [item[1] for item in batch]
@@ -72,24 +84,24 @@ def collate_fn(batch):
     text_tokens = pad_sequence(text_tokens, batch_first=True, padding_value=0)
     return audio_features, text_tokens
 
-# Сохраняем конфиг обучения
+# Сохранение конфига
 def save_training_config(config_dict, path='training_config.json'):
     try:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=4, ensure_ascii=False)
         logging.info(f"Конфигурация обучения сохранена в {path}")
     except Exception as e:
-        logging.error(f"Ошибка при сохранении конфигурации: {e}")
+        logging.error(f"Ошибка сохранения конфигурации: {e}")
 
 # Параметры модели
 def count_model_params(model):
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    logging.info(f"Всего параметров в модели: {total:,}")
+    logging.info(f"Всего параметров: {total:,}")
     logging.info(f"Обучаемых параметров: {trainable:,}")
     print(f"Параметры модели: всего {total:,}, обучаемых {trainable:,}")
 
-# Основной запуск
+# Основная функция
 def main():
     logging.info("Инициализация обучения...")
 
@@ -174,7 +186,6 @@ def main():
                     loss = criterion(outputs.view(-1, outputs.size(-1)), text_tokens.view(-1))
                 val_loss += loss.item()
 
-                # Прогнозы — логируем первые 3
                 with open(predictions_log_path, "a", encoding="utf-8") as pred_f:
                     for i in range(min(3, audio_features.size(0))):
                         true_tokens = text_tokens[i].detach().cpu().numpy()
@@ -187,10 +198,8 @@ def main():
         val_loss /= len(val_loader)
         train_loss_avg = running_loss / len(train_loader)
 
-        print(f"Эпоха {epoch + 1}: Обучение Loss={train_loss_avg:.4f} | Валидация Loss={val_loss:.4f}")
-        logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
-        logging.info(f"Время эпохи {epoch + 1}: {time.time() - epoch_start_time:.2f} сек.")
-
+        print(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
+        logging.info(f"Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
         writer.add_scalar('Loss/Train', train_loss_avg, epoch + 1)
         writer.add_scalar('Loss/Validation', val_loss, epoch + 1)
 
@@ -208,18 +217,20 @@ def main():
                 'val_loss': val_loss
             }, checkpoint_path)
             print(f"Модель сохранена: {checkpoint_path}")
-            logging.info(f"Лучшая модель сохранена на эпохе {epoch + 1} с val_loss={val_loss:.4f}")
+            logging.info("Модель сохранена")
+            send_telegram_message(
+                f"✅ Обучение: эпоха {epoch + 1} — новая лучшая модель сохранена!\nВалидация Loss: {val_loss:.4f}"
+            )
         else:
             epochs_no_improve += 1
             logging.info(f"Нет улучшения ({epochs_no_improve}/{early_stopping_patience})")
             if epochs_no_improve >= early_stopping_patience:
                 print(f"Ранняя остановка на эпохе {epoch + 1}")
-                logging.info("Ранняя остановка обучения из-за отсутствия улучшений.")
+                logging.info("Ранняя остановка.")
                 break
 
     writer.close()
 
-    # Визуализация потерь
     plt.figure(figsize=(10, 6))
     plt.plot(train_losses, label='Train Loss')
     plt.plot(val_losses, label='Validation Loss')
@@ -234,6 +245,9 @@ def main():
 
     print("Обучение завершено.")
     logging.info("Обучение завершено.")
+    send_telegram_message(
+        f"🛑 Обучение завершено. Последняя эпоха: {epoch + 1}\nПоследний val_loss: {val_loss:.4f}"
+    )
 
 if __name__ == "__main__":
     main()
