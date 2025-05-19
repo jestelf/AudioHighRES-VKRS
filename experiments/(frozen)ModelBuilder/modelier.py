@@ -13,6 +13,7 @@ from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm
 from xttsv2.model import XTTS2Model
 from xttsv2.data import text_to_token_ids
+from torch.utils.tensorboard import SummaryWriter  # NEW
 
 # Настройка логирования
 logging.basicConfig(
@@ -80,7 +81,7 @@ def save_training_config(config_dict, path='training_config.json'):
     except Exception as e:
         logging.error(f"Ошибка при сохранении конфигурации: {e}")
 
-# Подсчёт параметров модели # NEW
+# Подсчёт параметров модели
 def count_model_params(model):
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -128,12 +129,14 @@ def main():
     model = XTTS2Model.from_pretrained(model_checkpoint_path, speaker_checkpoint=speakers_checkpoint_path)
     model.to(device).half()
 
-    count_model_params(model)  # NEW
+    count_model_params(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
     criterion = nn.CrossEntropyLoss()
     scaler = torch.cuda.amp.GradScaler()
+
+    writer = SummaryWriter(log_dir='runs/xtts2_training')  # NEW
 
     best_val_loss = float('inf')
     train_losses = []
@@ -176,6 +179,9 @@ def main():
         logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
         logging.info(f"Время эпохи {epoch + 1}: {time.time() - epoch_start_time:.2f} сек.")
 
+        writer.add_scalar('Loss/Train', train_loss_avg, epoch + 1)  # NEW
+        writer.add_scalar('Loss/Validation', val_loss, epoch + 1)  # NEW
+
         train_losses.append(train_loss_avg)
         val_losses.append(val_loss)
         scheduler.step()
@@ -198,6 +204,8 @@ def main():
                 print(f"Ранняя остановка на эпохе {epoch + 1}")
                 logging.info("Ранняя остановка обучения из-за отсутствия улучшений.")
                 break
+
+    writer.close()  # NEW
 
     # Визуализация потерь
     plt.figure(figsize=(10, 6))
