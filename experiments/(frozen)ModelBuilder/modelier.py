@@ -4,7 +4,7 @@ import json
 import logging
 import numpy as np
 import torch
-import matplotlib.pyplot as plt  # NEW
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
 import torch.nn as nn
 import torch.optim as optim
@@ -13,11 +13,20 @@ from tqdm import tqdm
 from xttsv2.model import XTTS2Model
 from xttsv2.data import text_to_token_ids
 
-# (логгирование и device — без изменений)
+# (logging и device без изменений)
 
-# Основная функция
+def save_training_config(config_dict, path='training_config.json'):  # NEW
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(config_dict, f, indent=4, ensure_ascii=False)
+        logging.info(f"Конфигурация обучения сохранена в {path}")
+    except Exception as e:
+        logging.error(f"Ошибка при сохранении конфигурации: {e}")
+
 def main():
     logging.info("Инициализация обучения...")
+
+    # NEW: параметры обучения
     jsonl_file = 'D:/TrainerModel/Dataset/podcast_large.jsonl'
     features_dir = 'D:/TrainerModel/Dataset/features'
     checkpoint_path = 'D:/XTTS-v2/xtts2_finetuned.pth'
@@ -28,6 +37,22 @@ def main():
     num_epochs = 20
     learning_rate = 1e-4
 
+    # NEW: сохранить конфигурацию
+    training_config = {
+        "jsonl_file": jsonl_file,
+        "features_dir": features_dir,
+        "checkpoint_path": checkpoint_path,
+        "model_checkpoint_path": model_checkpoint_path,
+        "speakers_checkpoint_path": speakers_checkpoint_path,
+        "batch_size": batch_size,
+        "validation_split": validation_split,
+        "num_epochs": num_epochs,
+        "learning_rate": learning_rate,
+        "device": str(device)
+    }
+    save_training_config(training_config)
+
+    # Датасет и DataLoader
     dataset = XTTS2Dataset(jsonl_file, features_dir)
     val_size = int(validation_split * len(dataset))
     train_size = len(dataset) - val_size
@@ -45,8 +70,8 @@ def main():
     scaler = torch.cuda.amp.GradScaler()
 
     best_val_loss = float('inf')
-    train_losses = []  # NEW
-    val_losses = []    # NEW
+    train_losses = []
+    val_losses = []
 
     for epoch in range(num_epochs):
         model.train()
@@ -80,8 +105,8 @@ def main():
         print(f"Эпоха {epoch + 1}: Обучение Loss={train_loss_avg:.4f} | Валидация Loss={val_loss:.4f}")
         logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
 
-        train_losses.append(train_loss_avg)  # NEW
-        val_losses.append(val_loss)         # NEW
+        train_losses.append(train_loss_avg)
+        val_losses.append(val_loss)
 
         scheduler.step()
 
@@ -96,7 +121,7 @@ def main():
             print(f"Модель сохранена: {checkpoint_path}")
             logging.info(f"Лучшая модель сохранена на эпохе {epoch + 1} с val_loss={val_loss:.4f}")
 
-    # Визуализация потерь # NEW
+    # Визуализация
     plt.figure(figsize=(10, 6))
     plt.plot(train_losses, label='Train Loss')
     plt.plot(val_losses, label='Validation Loss')
@@ -107,7 +132,7 @@ def main():
     plt.grid(True)
     plt.savefig('loss_plot.png')
     plt.close()
-    logging.info("График потерь сохранён в loss_plot.png")  # NEW
+    logging.info("График потерь сохранён в loss_plot.png")
 
     print("Обучение завершено.")
     logging.info("Обучение завершено.")
