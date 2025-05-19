@@ -1,8 +1,8 @@
 // ────────────────────────────────────────────────────────────
-//  static/script.js — полноразмерный, мульти‑пользовательский
+//  static/script.js — полноразмерный, мульти-пользовательский
 // ────────────────────────────────────────────────────────────
 
-// ───────── Telegram WebApp API + fallback для обычного браузера
+// ───────── Telegram WebApp API + fallback для обычного браузера
 if (!window.Telegram || !Telegram.WebApp) {
   console.warn('⚠ Telegram.WebApp не найден — локальный режим.');
   window.Telegram = {
@@ -15,7 +15,7 @@ if (!window.Telegram || !Telegram.WebApp) {
 }
 const tg = Telegram.WebApp;
 
-// ───────── Удобный доступ к текущему userId
+// ───────── Удобный доступ к текущему userId
 const getUserId = () => {
   const ls = JSON.parse(localStorage.getItem('tgUser') || 'null');
   return tg.initDataUnsafe?.user?.id || ls?.id || null;
@@ -57,7 +57,7 @@ function saveSettings(s){
 }
 
 /* ===========================================================
-   1)  Шаблоны (5 вершин)
+   1)  Шаблоны (5 вершин)
    =========================================================== */
 const TEMPLATES = [
   { name:'Креатив', settings:{ temperature:1, top_k:100, top_p:1,   repetition_penalty:1, length_penalty:0.5, speed:1 } },
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ===========================================================
-   3)  Telegram Login Widget callback
+   3)  Telegram Login Widget callback
    =========================================================== */
 function onTelegramAuth(user) {
   localStorage.setItem('tgUser', JSON.stringify(user));
@@ -111,15 +111,19 @@ function onTelegramAuth(user) {
 }
 
 /* ===========================================================
-   4)  UI инициализация
+   4)  UI инициализация
    =========================================================== */
 function initializeUI() {
   injectVertexLabels();
   injectApplyButton();
 
   const s = getStoredSettings();
-  updateUIFromSettings(s);
-  setDotPosition(s.dotX, s.dotY);
+
+  // ── СНАЧАЛА позиционируем шарик (без interpolate) ──
+  setDotPosition(s.dotX, s.dotY, /* init = */ true);
+
+  // ── потом заполняем слайдеры / inputs сохранёнными значениями ──
+  updateUIFromSettings(getStoredSettings());
 
   initOptions();
   highlightTab(0); centerTabInView(0);
@@ -164,7 +168,7 @@ function initOptions() {
 }
 
 /* ===========================================================
-   5)  apply + save
+   5)  apply + save
    =========================================================== */
 function applyAndSave() {
   const userId = getUserId();
@@ -200,7 +204,7 @@ function scheduleSettingsSend(){
 }
 
 /* ===========================================================
-   6)  пятиугольник + точка (drag / click)
+   6)  пятиугольник + точка (drag / click)
    =========================================================== */
 function pointInPentagon(px,py,rect,extra=0){
   const c=document.createElement('canvas');c.width=rect.width;c.height=rect.height;
@@ -215,12 +219,21 @@ const pent=document.getElementById('pentagon'), dot=document.getElementById('dot
 let dragging=false;
 const VERT=[{x:50,y:0},{x:90,y:27},{x:77,y:90},{x:23,y:90},{x:10,y:27}];
 
-function setDotPosition(px,py){
+/* ───── изменено: добавлен аргумент init (по-умолчанию false) ───── */
+function setDotPosition(px,py,init=false){
   const r=pent.getBoundingClientRect(),dotR=dot.offsetWidth/2;
   const ax=r.left+r.width*px/100,ay=r.top+r.height*py/100;
   if(!pointInPentagon(ax,ay,r,dotR)) return;
   dot.style.left=`${px}%`;dot.style.top=`${py}%`;
-  const s=getStoredSettings();s.dotX=px;s.dotY=py;saveSettings(s);interpolate(px,py);
+
+  const s=getStoredSettings();
+  s.dotX = px;
+  s.dotY = py;
+
+  if (!init) {                 // ← обычный drag / click
+    saveSettings(s);
+    interpolate(px, py);
+  }
 }
 
 function startDrag(e){dragging=true;moveDot(e);}

@@ -1,8 +1,8 @@
 """
-voice_module.py – XTTS v2 | клон / синтез голоса
+voice_module.py – XTTS v2 | клон / синтез голоса
 ================================================
-•  model_dir   – папка с `XTTS‑v2/` (веса + config.json)       → D:/prdja
-•  storage_dir – корень, где будут храниться *личные* папки    → users_emb
+•  model_dir   – папка с `XTTS-v2/` (веса + config.json)       → D:/prdja
+•  storage_dir – корень, где будут храниться *личные* папки    → users_emb
                   └─ <user_id>/
                      ├─ speaker_embedding_*.npz
                      └─ tts_*.wav
@@ -47,7 +47,7 @@ DEFAULT_PARAMS: Dict[str, float] = {
 # helpers
 # ────────────────────────────────────────
 def _ensure_wav(src: Path, samplerate: int = 16_000) -> Path:
-    """Любой входной аудиофайл → mono WAV 16 кГц / 16‑бит."""
+    """Любой входной аудиофайл → mono WAV 16 кГц / 16-бит."""
     if src.suffix.lower() == ".wav":
         return src
     dst = src.with_suffix(".wav")
@@ -55,7 +55,7 @@ def _ensure_wav(src: Path, samplerate: int = 16_000) -> Path:
         AudioSegment.from_file(src)
         .set_channels(1)
         .set_frame_rate(samplerate)
-        .set_sample_width(2)  # 16‑bit
+        .set_sample_width(2)  # 16-bit
         .export(dst, format="wav")
     )
     return dst
@@ -63,6 +63,11 @@ def _ensure_wav(src: Path, samplerate: int = 16_000) -> Path:
 
 def _now() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def _clamp(v: float, low: float, high: float) -> float:
+    """Ограничить значение диапазоном [low, high]."""
+    return max(low, min(high, v))
 
 
 # ────────────────────────────────────────
@@ -73,10 +78,10 @@ class VoiceModule:
     Parameters
     ----------
     model_dir   : str | Path
-        Папка, в которой лежит `XTTS-v2/` (config.json + веса).
+        Папка, в которой лежит `XTTS-v2/` (config.json + веса).
     storage_dir : str | Path
         Корневая папка для пользовательских данных:
-        storage_dir/<user_id>/(слепки + синтезы).
+        storage_dir/<user_id>/(слепки + синтезы).
     """
 
     # ------------------------------------------------------------------ #
@@ -89,25 +94,31 @@ class VoiceModule:
 
         self._load_tts()
 
-        # кеши в RAM
+        # кеши в RAM
         self.user_params: Dict[str, Dict[str, float]] = {}
         self.user_embedding: Dict[str, Path] = {}
 
         logger.info("VoiceModule готов. Корень хранения: %s", self.storage_root)
 
     # ------------------------------------------------------------------ #
-    # public API
+    # public API
     # ------------------------------------------------------------------ #
     def set_user_params(self, user_id: str, **overrides) -> None:
-        """Сохранить / переопределить личные sampling‑параметры."""
+        """Сохранить / переопределить личные sampling-параметры."""
         cur = self.user_params.get(user_id, {})
         self.user_params[user_id] = {**DEFAULT_PARAMS, **cur, **overrides}
+
+    def get_user_params(self, user_id: str) -> Dict[str, float]:
+        """Вернуть готовые к работе sampling-параметры для пользователя."""
+        if user_id not in self.user_params:
+            self.set_user_params(user_id)
+        return self.user_params[user_id]
 
     # ---------- 1)  слепок ------------------------------------------- #
     def create_embedding(self, audio_file: str | Path, user_id: str) -> Path:
         """
         Принять аудиофайл (голосовое) и создать `speaker_embedding_*.npz`
-        в папке пользователя. Возвращает путь к npz.
+        в папке пользователя. Возвращает путь к npz.
         """
         user_dir = self._user_dir(user_id)
         wav_path = _ensure_wav(Path(audio_file))
@@ -135,25 +146,30 @@ class VoiceModule:
         **params_override,
     ) -> Path:
         """
-        Синтезировать `text` c помощью последнего (или указанного) слепка.
-        Возвращает путь к WAV‑файлу.
+        Синтезировать `text` c помощью последнего (или указанного) слепка.
+        Возвращает путь к WAV-файлу.
         """
-        # параметры
+        # параметры
         if user_id not in self.user_params:
             self.set_user_params(user_id)
         params = {**self.user_params[user_id], **params_override}
 
-        # какой слепок?
+        # speed может прилететь экзотический — ограничиваем
+        params["speed"] = _clamp(float(params.get("speed", 1.0)), 0.1, 3.0)
+
+        logger.info("TTS-параметры %s → %s", user_id, params)
+
+        # какой слепок?
         emb_path = Path(embedding_file) if embedding_file else self.user_embedding.get(user_id)
         if not emb_path or not emb_path.exists():
             raise RuntimeError(f"Слепок для пользователя {user_id!r} не найден.")
 
-        # загрузка слепка
+        # загрузка слепка
         data = np.load(emb_path, allow_pickle=True)
         g_latent = torch.tensor(data["gpt_cond_latent"], device=self.device)
         sp_emb   = torch.tensor(data["speaker_embedding"], device=self.device)
 
-        # генерация
+        # генерация
         with torch.amp.autocast(device_type=self.device.type, enabled=False):
             wav_dict = self.tts.inference(
                 text, "ru", g_latent, sp_emb,
@@ -173,7 +189,7 @@ class VoiceModule:
         return dst
 
     # ------------------------------------------------------------------ #
-    # internal utils
+    # internal utils
     # ------------------------------------------------------------------ #
     def _load_tts(self) -> None:
         cfg_path = self.model_dir / "XTTS-v2" / "config.json"
@@ -185,11 +201,11 @@ class VoiceModule:
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.tts: Xtts = model.to(self.device)
-        logger.info("XTTS‑v2 загружена (%s).", self.device.type.upper())
+        logger.info("XTTS-v2 загружена (%s).", self.device.type.upper())
 
     def _user_dir(self, user_id: str) -> Path:
         """
-        users_emb/<user_id>  – единственное место для данных пользователя.
+        users_emb/<user_id>  – единственное место для данных пользователя.
         """
         d = self.storage_root / user_id
         d.mkdir(parents=True, exist_ok=True)

@@ -2,7 +2,7 @@
 # ────────────────────────────────────────────────────────────────────────────────
 # • Flask-сайт              http://localhost:5000
 # • LocalTunnel-туннель     https://<sub>.loca.lt
-# • Telegram-бот            (команда /start даёт ин-лайн-меню слотов)
+# • Telegram-бот            (команда /start даёт ин-лайн-меню слотов + reply-кнопку WebApp)
 # • PatentTTS-проверка      POST /audio_check
 # • Anti-scam-классификатор (classifier.py)
 # • XTTS-clone / synthesis  (voice_module.py)
@@ -35,10 +35,8 @@ from flask import (
 )
 from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup,
-    InputFile
+    InputFile, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 )
-# для безопасной отправки аудио
-from telegram.error import TelegramError
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     CallbackQueryHandler, ContextTypes, filters
@@ -62,6 +60,8 @@ AUTH_FILE          = "authorized_users.txt"
 STRIKES_DB         = "user_strikes.json"
 BL_FILE            = "blacklist.txt"
 USERS_EMB          = Path("users_emb")
+WEBAPP_URL         = os.getenv("WEBAPP_URL")  # ← будет обновлён после запуска LT
+
 MAX_STRIKES  = 5
 ALERT_THRESH = 0.50
 
@@ -146,6 +146,12 @@ def log_line(uid: str, line: str):
     with open(folder / "message.log", "a", encoding="utf-8") as f:
         f.write(f"[{ts}] {line}\n")
 
+def apply_user_settings(uid: str) -> None:
+    """Загружает сохранённые параметры юзера (если есть) в VoiceModule."""
+    params = load_json(SETTINGS_DB).get(uid)
+    if params:
+        VOICE.set_user_params(uid, **params)
+
 ABBR = {
     "Безопасные сообщения":"БС","Родственник в беде":"РВБ","Выигрыши/лотереи/подарки":"ВЛ",
     "Госорганы и службы":"ГОС","Инвестиции и заработок":"ИЗ","Курьерские и почтовые обманы":"КПО",
@@ -200,6 +206,13 @@ def favicon():
     return send_from_directory(app.static_folder, "favicon.ico",
                                mimetype="image/vnd.microsoft.icon")
 
+# ───────────────────────── WebApp reply-клавиатура
+def build_webapp_keyboard() -> ReplyKeyboardMarkup:
+    btn = KeyboardButton("⚙️ Настройки", web_app=WebAppInfo(url=WEBAPP_URL)) if WEBAPP_URL \
+          else KeyboardButton("⚙️ Настройки")
+    return ReplyKeyboardMarkup([[btn]], resize_keyboard=True)
+
+# ───────────────────────── Flask-routes (auth / settings / tts ...)
 @app.route("/telegram_auth", methods=["POST"])
 def telegram_auth():
     d = request.get_json(force=True, silent=True)
@@ -297,9 +310,10 @@ def voice_tts():
     if not emb.exists():
         return jsonify(status="error", message="slot empty"), 404
 
-    # явно указываем VOICE, какой embedding-файл использовать
-    VOICE.user_embedding[uid] = emb  # type: ignore
+    # применяем сохранённые настройки до синтеза
+    apply_user_settings(uid)
 
+    VOICE.user_embedding[uid] = emb  # type: ignore
     try:
         wav_path = Path(VOICE.synthesize(uid, text))
     except Exception as e:
@@ -309,7 +323,6 @@ def voice_tts():
         return jsonify(status="error", message="synthesis failed"), 500
 
     inc_daily_gen(uid)
-    # отдаем настоящий WAV
     return send_file(
         wav_path.resolve(),
         as_attachment=True,
@@ -341,7 +354,15 @@ async def cmd_start(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if uid not in ids: f.write(uid + "\n")
     if get_tariff(uid) not in TARIFF_DEFS:
         set_tariff(uid, "free")
+
+    # сообщение со слотами (inline-клавиатура)
     await upd.message.reply_text("Ваши голосовые слоты:", reply_markup=build_slot_keyboard(uid))
+
+    # отдельная reply-клавиатура для WebApp
+    await upd.message.reply_text(
+        "Откройте WebApp для гибких настроек:",
+        reply_markup=build_webapp_keyboard()
+    )
 
 async def cb_handler(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     q = upd.callback_query
@@ -353,7 +374,6 @@ async def cb_handler(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if cmd == "slot":
         await q.edit_message_text(f"Слот {idx+1} выбран.", reply_markup=build_slot_keyboard(uid))
     else:
-        # new
         await q.edit_message_text("Отправьте новое голосовое сообщение для слепка.", reply_markup=None)
 
 async def handle_web_app(upd: Update, _: ContextTypes.DEFAULT_TYPE):
@@ -457,6 +477,9 @@ async def tg_text(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await upd.message.reply_text(f"Слот {slot+1} пуст. Выберите занятый слот.")
         return
 
+    # применяем сохранённые настройки до синтеза
+    apply_user_settings(uid)
+
     VOICE.user_embedding[uid] = emb  # type: ignore
     loop = asyncio.get_running_loop()
     try:
@@ -465,8 +488,6 @@ async def tg_text(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
         log_line(uid, f"TTS ERROR: {e}")
         return
 
-    # отдаем аудио через Telegram
-    # открываем файл бинарно, чтобы точно слать содержимое
     with open(str(wav_path), "rb") as f:
         await ctx.bot.send_audio(
             chat_id=upd.effective_chat.id,
@@ -479,11 +500,17 @@ def run_flask():
     app.run(port=5000, debug=False, use_reloader=False)
 
 def main():
+    global WEBAPP_URL
     if not BOT_TOKEN or not re.fullmatch(r"\d+:[\w-]{35}", BOT_TOKEN):
         raise RuntimeError("❌ BOT_TOKEN отсутствует или некорректен.")
     threading.Thread(target=run_flask, daemon=True).start()
     print("🌐 Flask на :5000")
-    print("✅", start_lt())
+
+    # запускаем LT и запоминаем публичный URL для WebApp-кнопки
+    lt_url = start_lt()
+    print("✅", lt_url)
+    if not WEBAPP_URL:
+        WEBAPP_URL = lt_url
 
     app_tg = ApplicationBuilder().token(BOT_TOKEN).build()
     app_tg.add_handler(CommandHandler("start", cmd_start))
