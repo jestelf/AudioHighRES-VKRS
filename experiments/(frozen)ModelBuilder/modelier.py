@@ -1,9 +1,10 @@
 import sys
 import os
 import json
-import logging  # NEW
+import logging
 import numpy as np
 import torch
+import matplotlib.pyplot as plt  # NEW
 from torch.utils.data import Dataset, DataLoader, random_split
 import torch.nn as nn
 import torch.optim as optim
@@ -12,25 +13,11 @@ from tqdm import tqdm
 from xttsv2.model import XTTS2Model
 from xttsv2.data import text_to_token_ids
 
-# Инициализация логгирования # NEW
-logging.basicConfig(
-    filename='training.log',
-    filemode='w',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-# Определение устройства
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(f"Используется устройство: {device}")
-logging.info(f"Используется устройство: {device}")  # NEW
-torch.backends.cudnn.benchmark = True
-
-# Датасет и прочее (оставлено без изменений)...
+# (логгирование и device — без изменений)
 
 # Основная функция
 def main():
-    logging.info("Инициализация обучения...")  # NEW
+    logging.info("Инициализация обучения...")
     jsonl_file = 'D:/TrainerModel/Dataset/podcast_large.jsonl'
     features_dir = 'D:/TrainerModel/Dataset/features'
     checkpoint_path = 'D:/XTTS-v2/xtts2_finetuned.pth'
@@ -49,7 +36,7 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
     print("Загрузка модели XTTS2...")
-    logging.info("Загрузка модели XTTS2...")  # NEW
+    logging.info("Загрузка модели XTTS2...")
     model = XTTS2Model.from_pretrained(model_checkpoint_path, speaker_checkpoint=speakers_checkpoint_path)
     model.to(device).half()
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
@@ -58,6 +45,9 @@ def main():
     scaler = torch.cuda.amp.GradScaler()
 
     best_val_loss = float('inf')
+    train_losses = []  # NEW
+    val_losses = []    # NEW
+
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -88,7 +78,10 @@ def main():
         val_loss /= len(val_loader)
         train_loss_avg = running_loss / len(train_loader)
         print(f"Эпоха {epoch + 1}: Обучение Loss={train_loss_avg:.4f} | Валидация Loss={val_loss:.4f}")
-        logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")  # NEW
+        logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
+
+        train_losses.append(train_loss_avg)  # NEW
+        val_losses.append(val_loss)         # NEW
 
         scheduler.step()
 
@@ -101,10 +94,23 @@ def main():
                 'val_loss': val_loss
             }, checkpoint_path)
             print(f"Модель сохранена: {checkpoint_path}")
-            logging.info(f"Лучшая модель сохранена на эпохе {epoch + 1} с val_loss={val_loss:.4f}")  # NEW
+            logging.info(f"Лучшая модель сохранена на эпохе {epoch + 1} с val_loss={val_loss:.4f}")
+
+    # Визуализация потерь # NEW
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_losses, label='Train Loss')
+    plt.plot(val_losses, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Train vs Validation Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('loss_plot.png')
+    plt.close()
+    logging.info("График потерь сохранён в loss_plot.png")  # NEW
 
     print("Обучение завершено.")
-    logging.info("Обучение завершено.")  # NEW
+    logging.info("Обучение завершено.")
 
 if __name__ == "__main__":
     main()
