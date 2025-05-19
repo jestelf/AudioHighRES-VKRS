@@ -1,0 +1,5 @@
+2025-02-15 10:04:48,507 [INFO] Логирование инициализировано.
+2025-02-15 10:04:48,507 [INFO] Backup folder: backup\2025-02-15_10-04-48
+2025-02-15 10:04:48,507 [INFO] CSV лог инициализирован: backup\2025-02-15_10-04-48\training_metrics.csv
+2025-02-15 10:04:48,616 [INFO] Используется GPU: NVIDIA GeForce RTX 3060
+2025-02-15 10:04:48,616 [INFO] Параметры обучения: {'in_channels': 1, 'hidden_channels': 128, 'latent_dim': 64, 'num_encoder_layers': 3, 'num_decoder_layers': 3, 'use_batch_norm': False, 'dropout_rate': 0.0, 'learning_rate': 0.0001, 'batch_size': 10, 'num_epochs': 15}

@@ -1,0 +1,9 @@
+2025-02-15 15:46:15,135 [INFO] Логирование инициализировано.
+2025-02-15 15:46:15,135 [INFO] Backup folder: C:\GitPub\experimentsv3\speech_classifier_backup\2025-02-15_15-46-15
+2025-02-15 15:46:15,136 [INFO] Устройство: cpu
+2025-02-15 15:46:37,471 [INFO] [Epoch 1/5] avg_loss=0.363830 accuracy=88.73% lr=0.001
+2025-02-15 15:46:59,307 [INFO] [Epoch 2/5] avg_loss=0.125291 accuracy=98.04% lr=0.001
+2025-02-15 15:47:29,534 [INFO] [Epoch 3/5] avg_loss=0.100461 accuracy=98.04% lr=0.001
+2025-02-15 15:47:53,483 [INFO] [Epoch 4/5] avg_loss=0.083784 accuracy=98.04% lr=0.001
+2025-02-15 15:48:17,715 [INFO] [Epoch 5/5] avg_loss=0.099204 accuracy=98.04% lr=0.001
+2025-02-15 15:48:17,727 [INFO] Модель сохранена: C:\GitPub\experimentsv3\speech_classifier_backup\2025-02-15_15-46-15\speech_classifier.pth

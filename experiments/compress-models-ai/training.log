@@ -1,25 +1,8 @@
-2025-02-06 20:49:31,658 INFO: Logging is set up. Logs will be saved in 'training.log'
-2025-02-06 20:49:33,498 INFO: Using device: cuda
-2025-02-06 21:00:30,750 INFO: Epoch 1: Train Loss = 0.296160, Val Loss = 0.388906
-2025-02-06 21:00:30,766 INFO: Checkpoint saved: checkpoint_epoch_1.pth
-2025-02-06 21:00:30,766 INFO: New best model at epoch 1 with Val Loss: 0.388906
-2025-02-06 21:11:39,887 INFO: Epoch 2: Train Loss = 0.142609, Val Loss = 0.059935
-2025-02-06 21:11:39,887 INFO: Checkpoint saved: checkpoint_epoch_2.pth
-2025-02-06 21:11:39,887 INFO: New best model at epoch 2 with Val Loss: 0.059935
-2025-02-06 21:32:04,647 INFO: Epoch 3: Train Loss = 0.033449, Val Loss = 0.012772
-2025-02-06 21:32:04,647 INFO: Checkpoint saved: checkpoint_epoch_3.pth
-2025-02-06 21:32:04,647 INFO: New best model at epoch 3 with Val Loss: 0.012772
-2025-02-06 21:43:36,334 INFO: Epoch 4: Train Loss = 0.011755, Val Loss = 0.008952
-2025-02-06 21:43:36,334 INFO: Checkpoint saved: checkpoint_epoch_4.pth
-2025-02-06 21:43:36,350 INFO: New best model at epoch 4 with Val Loss: 0.008952
-2025-02-06 21:54:53,623 INFO: Epoch 5: Train Loss = 0.007933, Val Loss = 0.006446
-2025-02-06 21:54:53,623 INFO: Checkpoint saved: checkpoint_epoch_5.pth
-2025-02-06 21:54:53,623 INFO: New best model at epoch 5 with Val Loss: 0.006446
-2025-02-06 22:06:23,720 INFO: Epoch 6: Train Loss = 0.005871, Val Loss = 0.005279
-2025-02-06 22:06:23,720 INFO: Checkpoint saved: checkpoint_epoch_6.pth
-2025-02-06 22:06:23,720 INFO: New best model at epoch 6 with Val Loss: 0.005279
-2025-02-06 22:17:54,035 INFO: Epoch 7: Train Loss = 0.005398, Val Loss = 0.005409
-2025-02-06 22:17:54,051 INFO: Checkpoint saved: checkpoint_epoch_7.pth
-2025-02-06 22:29:24,240 INFO: Epoch 8: Train Loss = 0.005275, Val Loss = 0.004683
-2025-02-06 22:29:24,240 INFO: Checkpoint saved: checkpoint_epoch_8.pth
-2025-02-06 22:29:24,240 INFO: New best model at epoch 8 with Val Loss: 0.004683
+2025-02-14 16:03:32,558 INFO: Logging is set up. Logs will be saved in 'training.log'
+2025-02-14 16:03:34,403 INFO: Using device: cuda
+2025-02-14 17:04:59,159 INFO: Epoch 1: Train Loss = 0.155231, Val Loss = 0.179908
+2025-02-14 17:04:59,159 INFO: Checkpoint saved: checkpoint_epoch_1.pth
+2025-02-14 17:04:59,175 INFO: New best model at epoch 1 with Val Loss: 0.179908
+2025-02-14 18:05:21,216 INFO: Epoch 2: Train Loss = 0.141467, Val Loss = 0.117985
+2025-02-14 18:05:21,216 INFO: Checkpoint saved: checkpoint_epoch_2.pth
+2025-02-14 18:05:21,231 INFO: New best model at epoch 2 with Val Loss: 0.117985

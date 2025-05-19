@@ -1,0 +1,13 @@
+2025-02-15 12:40:13,596 [INFO] Логирование инициализировано.
+2025-02-15 12:40:13,596 [INFO] Backup folder: D:\gitpub\AudioHighRES-VKRS\experiments\compress-models-ai\experimentsv2\ms_tts_backup\2025-02-15_12-40-13
+2025-02-15 12:40:13,596 [INFO] Устройство: cuda
+2025-02-15 12:40:20,197 [INFO] [Epoch 1/30] avg_loss=0.478448 delta=0.000000 lr=0.001
+2025-02-15 12:40:25,350 [INFO] [Epoch 2/30] avg_loss=0.461789 delta=0.016659 lr=0.001
+2025-02-15 12:40:30,447 [INFO] [Epoch 3/30] avg_loss=0.462063 delta=-0.000274 lr=0.001
+2025-02-15 12:40:35,593 [INFO] [Epoch 4/30] avg_loss=0.458535 delta=0.003528 lr=0.001
+2025-02-15 12:40:40,740 [INFO] [Epoch 5/30] avg_loss=0.455471 delta=0.003064 lr=0.001
+2025-02-15 12:40:45,937 [INFO] [Epoch 6/30] avg_loss=0.456710 delta=-0.001239 lr=0.001
+2025-02-15 12:40:51,086 [INFO] [Epoch 7/30] avg_loss=0.452688 delta=0.004023 lr=0.001
+2025-02-15 12:40:56,163 [INFO] [Epoch 8/30] avg_loss=0.462097 delta=-0.009409 lr=0.001
+2025-02-15 12:41:01,308 [INFO] [Epoch 9/30] avg_loss=0.458507 delta=0.003590 lr=0.001
+2025-02-15 12:41:06,555 [INFO] [Epoch 10/30] avg_loss=0.460668 delta=-0.002161 lr=0.001

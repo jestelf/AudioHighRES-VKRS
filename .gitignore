@@ -1,0 +1,9 @@
+/experiments/compress-models-ai/experiments/data/*
+/experiments/compress-models-ai/data/*
+/experiments/compress-models-ai/experimentsv2/backup/*
+/experiments/compress-models-ai/experimentsv2/data/*
+/experiments/compress-models-ai/experimentsv2/data_librispeech/*
+/experiments/compress-models-ai/experimentsv2/embeddings_dataset/*
+/experiments/compress-models-ai/experimentsv2/LJSpeech-1.1/*
+/experiments/compress-models-ai/experimentsv3/data_librispeech/*
+/experiments/compress-models-ai/experimentsv3/datasets/*
