@@ -3,7 +3,7 @@ import os
 import json
 import logging
 import time
-import requests  # NEW
+import requests
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -24,23 +24,23 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Telegram-бот уведомления
-BOT_TOKEN = ""  
-CHAT_ID = ""      
+# Telegram-бот
+BOT_TOKEN = "your_bot_token_here"  # Замените
+CHAT_ID = "your_chat_id_here"      # Замените
 
 def send_telegram_message(text):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         data = {"chat_id": CHAT_ID, "text": text}
         requests.post(url, data=data)
-        logging.info("Уведомление отправлено в Telegram.")
+        logging.info("Telegram-уведомление отправлено.")
     except Exception as e:
-        logging.warning(f"Ошибка отправки уведомления: {e}")
+        logging.warning(f"Ошибка Telegram: {e}")
 
-# Определение устройства
+# Устройство
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Используется устройство: {device}")
-logging.info(f"Используется устройство: {device}")
+logging.info(f"Устройство: {device}")
 torch.backends.cudnn.benchmark = True
 
 # Датасет
@@ -52,62 +52,52 @@ class XTTS2Dataset(Dataset):
             for line in f:
                 try:
                     record = json.loads(line)
-                    audio_path = os.path.join(features_dir, os.path.basename(record['audio_features']))
-                    if os.path.exists(audio_path):
-                        self.records.append({
-                            'audio_features': audio_path,
-                            'text': record['text']
-                        })
+                    path = os.path.join(features_dir, os.path.basename(record['audio_features']))
+                    if os.path.exists(path):
+                        self.records.append({'audio_features': path, 'text': record['text']})
                 except Exception as e:
-                    print(f"Ошибка при загрузке записи: {e}")
+                    print(f"Ошибка в json: {e}")
 
     def __len__(self):
         return len(self.records)
 
     def __getitem__(self, idx):
         try:
-            record = self.records[idx]
-            audio_features = np.load(record['audio_features'])
-            text = record['text']
-            audio_features = torch.tensor(audio_features, dtype=torch.float32)
-            text_tokens = torch.tensor(text_to_token_ids(text), dtype=torch.long)
-            return audio_features, text_tokens
+            r = self.records[idx]
+            audio = np.load(r['audio_features'])
+            text = r['text']
+            return torch.tensor(audio, dtype=torch.float32), torch.tensor(text_to_token_ids(text), dtype=torch.long)
         except Exception as e:
-            print(f"Ошибка в записи {idx}: {e}")
+            print(f"Ошибка в элементе {idx}: {e}")
             return torch.zeros(1), torch.zeros(1)
 
 # Коллатор
 def collate_fn(batch):
-    audio_features = [item[0] for item in batch]
-    text_tokens = [item[1] for item in batch]
-    audio_features = pad_sequence(audio_features, batch_first=True, padding_value=0)
-    text_tokens = pad_sequence(text_tokens, batch_first=True, padding_value=0)
-    return audio_features, text_tokens
+    af = [b[0] for b in batch]
+    tt = [b[1] for b in batch]
+    return pad_sequence(af, batch_first=True), pad_sequence(tt, batch_first=True)
 
-# Сохранение конфига
-def save_training_config(config_dict, path='training_config.json'):
-    try:
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(config_dict, f, indent=4, ensure_ascii=False)
-        logging.info(f"Конфигурация обучения сохранена в {path}")
-    except Exception as e:
-        logging.error(f"Ошибка сохранения конфигурации: {e}")
+# Конфиг
+def save_training_config(cfg, path='training_config.json'):
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(cfg, f, indent=4, ensure_ascii=False)
+    logging.info(f"Сохранён конфиг: {path}")
 
 # Параметры модели
 def count_model_params(model):
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    logging.info(f"Всего параметров: {total:,}")
-    logging.info(f"Обучаемых параметров: {trainable:,}")
+    logging.info(f"Параметры: всего={total:,}, обучаемых={trainable:,}")
     print(f"Параметры модели: всего {total:,}, обучаемых {trainable:,}")
 
 # Основная функция
 def main():
-    logging.info("Инициализация обучения...")
-
+    logging.info("Запуск обучения...")
     jsonl_file = 'D:/TrainerModel/Dataset/podcast_large.jsonl'
     features_dir = 'D:/TrainerModel/Dataset/features'
     checkpoint_path = 'D:/XTTS-v2/xtts2_finetuned.pth'
+    checkpoints_dir = 'checkpoints'  # NEW
+    os.makedirs(checkpoints_dir, exist_ok=True)  # NEW
     model_checkpoint_path = 'D:/XTTS-v2/model.pth'
     speakers_checkpoint_path = 'D:/XTTS-v2/speakers_xtts.pth'
     batch_size = 32
@@ -115,7 +105,7 @@ def main():
     num_epochs = 20
     learning_rate = 1e-4
 
-    config = {
+    cfg = {
         "jsonl_file": jsonl_file,
         "features_dir": features_dir,
         "checkpoint_path": checkpoint_path,
@@ -127,127 +117,114 @@ def main():
         "learning_rate": learning_rate,
         "device": str(device)
     }
-    save_training_config(config)
+    save_training_config(cfg)
 
     dataset = XTTS2Dataset(jsonl_file, features_dir)
-    val_size = int(validation_split * len(dataset))
-    train_size = len(dataset) - val_size
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    val_len = int(validation_split * len(dataset))
+    train_len = len(dataset) - val_len
+    train_ds, val_ds = random_split(dataset, [train_len, val_len])
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
-    print("Загрузка модели XTTS2...")
-    logging.info("Загрузка модели XTTS2...")
     model = XTTS2Model.from_pretrained(model_checkpoint_path, speaker_checkpoint=speakers_checkpoint_path)
     model.to(device).half()
     count_model_params(model)
 
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
-    criterion = nn.CrossEntropyLoss()
+    opt = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
+    sched = torch.optim.lr_scheduler.StepLR(opt, step_size=5, gamma=0.5)
+    loss_fn = nn.CrossEntropyLoss()
     scaler = torch.cuda.amp.GradScaler()
-
     writer = SummaryWriter(log_dir='runs/xtts2_training')
-    predictions_log_path = "predictions.txt"
-    if os.path.exists(predictions_log_path):
-        os.remove(predictions_log_path)
 
-    best_val_loss = float('inf')
-    train_losses = []
-    val_losses = []
-    early_stopping_patience = 5
-    epochs_no_improve = 0
+    pred_path = "predictions.txt"
+    if os.path.exists(pred_path):
+        os.remove(pred_path)
+
+    best_val = float('inf')
+    train_losses, val_losses = [], []
+    patience, no_improve = 5, 0
 
     for epoch in range(num_epochs):
-        epoch_start_time = time.time()
+        start = time.time()
         model.train()
-        running_loss = 0.0
+        total_loss = 0.0
 
-        for audio_features, text_tokens in tqdm(train_loader, desc=f"Эпоха {epoch+1}/{num_epochs} [Обучение]"):
-            audio_features, text_tokens = audio_features.to(device), text_tokens.to(device)
-            optimizer.zero_grad()
-
+        for af, tt in tqdm(train_loader, desc=f"Эпоха {epoch+1}/{num_epochs} [Обучение]"):
+            af, tt = af.to(device), tt.to(device)
+            opt.zero_grad()
             with torch.cuda.amp.autocast():
-                outputs = model(audio_features, text_tokens)
-                loss = criterion(outputs.view(-1, outputs.size(-1)), text_tokens.view(-1))
-
+                out = model(af, tt)
+                loss = loss_fn(out.view(-1, out.size(-1)), tt.view(-1))
             scaler.scale(loss).backward()
-            scaler.step(optimizer)
+            scaler.step(opt)
             scaler.update()
-            running_loss += loss.item()
+            total_loss += loss.item()
 
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for audio_features, text_tokens in val_loader:
-                audio_features, text_tokens = audio_features.to(device), text_tokens.to(device)
+            for af, tt in val_loader:
+                af, tt = af.to(device), tt.to(device)
                 with torch.cuda.amp.autocast():
-                    outputs = model(audio_features, text_tokens)
-                    loss = criterion(outputs.view(-1, outputs.size(-1)), text_tokens.view(-1))
+                    out = model(af, tt)
+                    loss = loss_fn(out.view(-1, out.size(-1)), tt.view(-1))
                 val_loss += loss.item()
 
-                with open(predictions_log_path, "a", encoding="utf-8") as pred_f:
-                    for i in range(min(3, audio_features.size(0))):
-                        true_tokens = text_tokens[i].detach().cpu().numpy()
-                        pred_tokens = outputs[i].argmax(dim=-1).detach().cpu().numpy()
-                        true_text = token_ids_to_text(true_tokens)
-                        pred_text = token_ids_to_text(pred_tokens)
-                        pred_f.write(f"[Epoch {epoch+1}] Истинный текст: {true_text}\n")
-                        pred_f.write(f"[Epoch {epoch+1}] Предсказание  : {pred_text}\n\n")
+                with open(pred_path, "a", encoding="utf-8") as f:
+                    for i in range(min(3, af.size(0))):
+                        true = token_ids_to_text(tt[i].cpu().numpy())
+                        pred = token_ids_to_text(out[i].argmax(-1).cpu().numpy())
+                        f.write(f"[Epoch {epoch+1}] Истинный текст: {true}\n")
+                        f.write(f"[Epoch {epoch+1}] Предсказание  : {pred}\n\n")
 
         val_loss /= len(val_loader)
-        train_loss_avg = running_loss / len(train_loader)
-
-        print(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
-        logging.info(f"Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
-        writer.add_scalar('Loss/Train', train_loss_avg, epoch + 1)
-        writer.add_scalar('Loss/Validation', val_loss, epoch + 1)
-
-        train_losses.append(train_loss_avg)
+        avg_train = total_loss / len(train_loader)
+        print(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}")
+        logging.info(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}")
+        writer.add_scalar("Loss/Train", avg_train, epoch + 1)
+        writer.add_scalar("Loss/Validation", val_loss, epoch + 1)
+        train_losses.append(avg_train)
         val_losses.append(val_loss)
-        scheduler.step()
+        sched.step()
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            epochs_no_improve = 0
+        torch.save({
+            'epoch': epoch + 1,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': opt.state_dict(),
+            'val_loss': val_loss
+        }, os.path.join(checkpoints_dir, f"epoch_{epoch+1:03}.pth"))  # NEW
+
+        if val_loss < best_val:
+            best_val = val_loss
+            no_improve = 0
             torch.save({
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
+                'optimizer_state_dict': opt.state_dict(),
                 'val_loss': val_loss
             }, checkpoint_path)
-            print(f"Модель сохранена: {checkpoint_path}")
-            logging.info("Модель сохранена")
-            send_telegram_message(
-                f"✅ Обучение: эпоха {epoch + 1} — новая лучшая модель сохранена!\nВалидация Loss: {val_loss:.4f}"
-            )
+            logging.info("Сохранена лучшая модель.")
+            send_telegram_message(f"✅ Эпоха {epoch+1}: новая лучшая модель!\nVal Loss: {val_loss:.4f}")
         else:
-            epochs_no_improve += 1
-            logging.info(f"Нет улучшения ({epochs_no_improve}/{early_stopping_patience})")
-            if epochs_no_improve >= early_stopping_patience:
-                print(f"Ранняя остановка на эпохе {epoch + 1}")
+            no_improve += 1
+            if no_improve >= patience:
+                print(f"Ранняя остановка на {epoch+1}")
                 logging.info("Ранняя остановка.")
                 break
 
     writer.close()
-
     plt.figure(figsize=(10, 6))
-    plt.plot(train_losses, label='Train Loss')
-    plt.plot(val_losses, label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Train vs Validation Loss')
+    plt.plot(train_losses, label="Train")
+    plt.plot(val_losses, label="Validation")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Потери")
     plt.legend()
-    plt.grid(True)
-    plt.savefig('loss_plot.png')
-    plt.close()
-    logging.info("График потерь сохранён в loss_plot.png")
-
+    plt.grid()
+    plt.savefig("loss_plot.png")
+    logging.info("Сохранён график потерь.")
     print("Обучение завершено.")
-    logging.info("Обучение завершено.")
-    send_telegram_message(
-        f"🛑 Обучение завершено. Последняя эпоха: {epoch + 1}\nПоследний val_loss: {val_loss:.4f}"
-    )
+    send_telegram_message(f"🛑 Обучение завершено. Последняя эпоха: {epoch+1}\nVal Loss: {val_loss:.4f}")
 
 if __name__ == "__main__":
     main()
