@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Web App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Быстрая стилизация: контур пятиугольника + кнопка -->
+  <style>
+    .pentagon{
+      border:2px dashed #3cd4cb;
+      clip-path:polygon(50% 0%,100% 19%,82% 100%,18% 100%,0% 19%);
+    }
+    .btn-primary{
+      display:block;
+      margin:16px auto;
+      padding:10px 24px;
+      background:#3cd4cb;
+      color:#000;
+      border:none;
+      border-radius:8px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:filter .2s;
+    }
+    .btn-primary:hover{filter:brightness(1.1);}
+    .btn-primary:active{filter:brightness(.9);}
+  </style>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+  <!-- Оверлей авторизации -->
+  <div id="loginOverlay" class="overlay">
+    <div class="login-container">
+      <script async src="https://telegram.org/js/telegram-widget.js?22"
+              data-telegram-login="awfuhauiwfhaf_bot"
+              data-size="large"
+              data-onauth="onTelegramAuth(user)"
+              data-request-access="write"></script>
+    </div>
+  </div>
+
+  <!-- Анимация авторизации -->
+  <div id="authAnimationOverlay" class="overlay" style="display:none">
+    <div class="auth-animation">
+      <div class="auth-logo">
+        <div class="auth-circle">
+          <div class="auth-bars">
+            <div class="auth-bar auth-bar1"></div>
+            <div class="auth-bar auth-bar2"></div>
+            <div class="auth-bar auth-bar3"></div>
+          </div>
+        </div>
+        <div class="auth-text">
+          <div class="auth-audio">Audio</div>
+          <div class="auth-highres">HIGH-RES</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Подсказка -->
+  <div id="tooltipModal" class="tooltip-modal" onclick="closeTooltip()">
+    <div class="tooltip-box" id="tooltipText">Подсказка</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="topTabs">
+    <div class="tab active" data-page="0" onclick="switchTab(0)">Настройки</div>
+    <div class="tab" data-page="1" onclick="switchTab(1)">Тарифы</div>
+    <div class="tab" data-page="2" onclick="switchTab(2)">Опции</div>
+    <div class="tab" data-page="3" onclick="switchTab(3)">Безопасность</div>
+  </div>
+
+  <!-- Pages -->
+  <div class="scroll-wrapper" id="scrollContainer">
+
+    <!-- PAGE 0 : SETTINGS -->
+    <div class="page">
+      <div class="container">
+        <div class="pentagon-wrapper">
+          <div class="pentagon" id="pentagon">
+            <div class="dot" id="dot"></div>
+          </div>
+        </div>
+
+        <div class="section-title" onclick="toggleSettings()">
+          <span>Гибкие настройки</span>
+          <span class="chevron" id="chevron">&#9654;</span>
+        </div>
+
+        <!-- Кнопка теперь ВНЕ скрываемого блока -->
+        <button id="applyBtn" class="btn-primary" onclick="applyAndSave()">Применить настройки</button>
+
+        <div id="settingsBlock" class="settings-container">
+
+          <!-- Temperature -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Управляет случайностью ответов')">Temperature</div>
+            <div class="slider-container">
+              <input type="range" data-key="temperature" min="0.0" max="1.0" step="0.01" oninput="sync(this)">
+              <input type="number" data-key="temperature" min="0.0" max="1.0" step="0.01" oninput="sync(this)">
+            </div>
+          </div>
+
+          <!-- Top‑K -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Ограничивает выбор до топ K токенов')">Top‑K</div>
+            <div class="slider-container">
+              <input type="range" data-key="top_k" min="0" max="100" step="1" oninput="sync(this)">
+              <input type="number" data-key="top_k" min="0" max="100" step="1" oninput="sync(this)">
+            </div>
+          </div>
+
+          <!-- Top‑P -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Использует ядерное семплирование')">Top‑P</div>
+            <div class="slider-container">
+              <input type="range" data-key="top_p" min="0.0" max="1.0" step="0.01" oninput="sync(this)">
+              <input type="number" data-key="top_p" min="0.0" max="1.0" step="0.01" oninput="sync(this)">
+            </div>
+          </div>
+
+          <!-- Repetition -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Наказывает повтор слов')">Repetition Penalty</div>
+            <div class="slider-container">
+              <input type="range" data-key="repetition_penalty" min="1.0" max="3.0" step="0.1" oninput="sync(this)">
+              <input type="number" data-key="repetition_penalty" min="1.0" max="3.0" step="0.1" oninput="sync(this)">
+            </div>
+          </div>
+
+          <!-- Length -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Стимулирует/наказывает длину')">Length Penalty</div>
+            <div class="slider-container">
+              <input type="range" data-key="length_penalty" min="0.0" max="2.0" step="0.1" oninput="sync(this)">
+              <input type="number" data-key="length_penalty" min="0.0" max="2.0" step="0.1" oninput="sync(this)">
+            </div>
+          </div>
+
+          <!-- Speed -->
+          <div class="setting">
+            <div class="label-group" onclick="showTooltip('Скорость ответа (визуально)')">Speed</div>
+            <div class="slider-container">
+              <input type="range" data-key="speed" min="0.1" max="2.0" step="0.1" oninput="sync(this)">
+              <input type="number" data-key="speed" min="0.1" max="2.0" step="0.1" oninput="sync(this)">
+            </div>
+          </div>
+
+          <button id="resetBtn" class="btn-reset" onclick="resetAllSettings()">Сбросить настройки</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 1 : TARIFFS -->
+    <div class="page">
+      <div class="container" id="tariffContainer" onclick="handleTariffBackgroundClick(event)">
+        <div class="tariff-btn" onclick="selectTariff(event,this,'Base Free')">
+          <span class="tariff-name">Base Free</span>
+          <span class="tariff-price">0 ₽/мес</span>
+        </div>
+        <div class="tariff-btn" onclick="selectTariff(event,this,'Base+')">
+          <span class="tariff-name">Base+</span>
+          <span class="tariff-price">150 ₽/мес</span>
+        </div>
+        <div class="tariff-btn" onclick="selectTariff(event,this,'Vip')">
+          <span class="tariff-name">Vip</span>
+          <span class="tariff-price">300 ₽/мес</span>
+        </div>
+        <div class="tariff-btn" onclick="selectTariff(event,this,'Premium')">
+          <span class="tariff-name">Premium</span>
+          <span class="tariff-price">800 ₽/мес</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2 : OPTIONS -->
+    <div class="page">
+      <div class="container">
+        <div class="options-container">
+          <h3>Уведомления</h3>
+          <div class="option-row">
+            <label class="switch">
+              <input type="checkbox" data-key="notifications" id="notificationToggle" onchange="sync(this)">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+          <p>Получать уведомления о важных событиях и новостях.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3 : SECURITY -->
+    <div class="page">
+      <div class="container">
+        <h3>Проверка аудио</h3>
+        <p>Загрузите аудио‑файл для проверки (заглушка).</p>
+        <div class="audio-upload">
+          <input type="file" accept="audio/*" id="audioFile">
+        </div>
+        <button class="btn-check-audio" onclick="checkAudio()">Проверить</button>
+        <div id="audioCheckResult" class="audio-result"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

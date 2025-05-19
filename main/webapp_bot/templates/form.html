@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Настройки</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #121212;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    .scroll-wrapper {
+      display: flex;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .page {
+      width: 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background: #202020;
+      padding: 16px 0;
+    }
+
+    .tab {
+      margin: 0 16px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #888;
+    }
+
+    .tab.active {
+      color: #fff;
+      background-color: #333;
+    }
+
+    .container {
+      max-width: 400px;
+      flex: 1;
+      margin: 0 auto;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 24px;
+      overflow-y: auto;
+    }
+
+    .pentagon-wrapper {
+      position: relative;
+      width: fit-content;
+      margin: 0 auto 30px;
+    }
+
+    .pentagon {
+      width: 200px;
+      height: 200px;
+      background: #0e0e0e;
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      border: 2px solid #3cd4cb;
+      position: relative;
+      touch-action: none;
+    }
+
+    .dot {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background-color: orange;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .chevron {
+      display: inline-block;
+      transition: transform 0.3s ease;
+      font-size: 20px;
+      color: #555;
+    }
+
+    .chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .settings-container {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+
+    .settings-container.open {
+      max-height: 1000px;
+      opacity: 1;
+    }
+
+    .setting {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 20px 0;
+      gap: 10px;
+    }
+
+    .label-group {
+      min-width: 100px;
+      cursor: pointer;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 200px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: #3cd4cb;
+      height: 6px;
+      background: linear-gradient(to right, #888, #3cd4cb, #888);
+      border-radius: 4px;
+    }
+
+    input[type="number"] {
+      width: 50px;
+      padding: 4px;
+      text-align: center;
+      background: #2e2e2e;
+      border: none;
+      color: #fff;
+      border-radius: 6px;
+    }
+
+    .tariff-btn {
+      background: #2a2a2a;
+      color: #ccc;
+      border: 1px solid #444;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tariff-btn.selected {
+      background: #444;
+      color: #fff;
+      transform: scale(1.03);
+      z-index: 2;
+    }
+
+    .tariff-btn.dimmed {
+      opacity: 0.4;
+      filter: blur(0.5px);
+    }
+
+    .tariff-details {
+      margin-top: 10px;
+      background: #222;
+      padding: 10px 15px;
+      border-radius: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tariff-details li {
+      margin-bottom: 6px;
+    }
+
+    .btn-confirm {
+      margin-top: 10px;
+      background: #3cd4cb;
+      color: #000;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-wrapper" id="scrollContainer">
+    <!-- Настройки -->
+    <div class="page">
+      <div class="tabs">
+        <div class="tab active">Настройки</div>
+        <div class="tab">Тарифы</div>
+      </div>
+
+      <div class="container">
+        <div class="pentagon-wrapper">
+          <div class="pentagon" id="pentagon">
+            <div class="dot" id="dot" style="top: 50%; left: 50%;"></div>
+          </div>
+        </div>
+
+        <div class="section-title" onclick="toggleSettings()">
+          <span>Гибкие настройки</span>
+          <span class="chevron" id="chevron">&#9654;</span>
+        </div>
+
+        <div id="settingsBlock" class="settings-container">
+          <div class="setting">
+            <div class="label-group"><span>Скорость</span></div>
+            <div class="slider-container">
+              <input type="range" value="0" min="-100" max="100" oninput="sync(this)">
+              <input type="number" value="0" min="-100" max="100" oninput="sync(this)">
+            </div>
+          </div>
+          <div class="setting">
+            <div class="label-group"><span>Громкость</span></div>
+            <div class="slider-container">
+              <input type="range" value="0" min="-100" max="100" oninput="sync(this)">
+              <input type="number" value="0" min="-100" max="100" oninput="sync(this)">
+            </div>
+          </div>
+          <div class="setting">
+            <div class="label-group"><span>Яркость</span></div>
+            <div class="slider-container">
+              <input type="range" value="0" min="-100" max="100" oninput="sync(this)">
+              <input type="number" value="0" min="-100" max="100" oninput="sync(this)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Тарифы -->
+    <div class="page">
+      <div class="tabs">
+        <div class="tab">Настройки</div>
+        <div class="tab active">Тарифы</div>
+      </div>
+
+      <div class="container" id="tariffContainer" onclick="handleTariffBackgroundClick(event)">
+        <div class="tariff-btn" onclick="selectTariff(event, this, 'Base Free')">Base Free</div>
+        <div class="tariff-btn" onclick="selectTariff(event, this, 'Base+')">Base+ 150 ₽</div>
+        <div class="tariff-btn" onclick="selectTariff(event, this, 'Vip')">Vip 300 ₽</div>
+        <div class="tariff-btn" onclick="selectTariff(event, this, 'Premium')">Premium 800 ₽/мес</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSettings() {
+      const block = document.getElementById("settingsBlock");
+      const chevron = document.getElementById("chevron");
+      block.classList.toggle("open");
+      chevron.classList.toggle("open");
+    }
+
+    function sync(elem) {
+      const paired = elem.type === "range" ? elem.nextElementSibling : elem.previousElementSibling;
+      paired.value = elem.value;
+    }
+
+    function selectTariff(e, element, name) {
+      e.stopPropagation();
+
+      if (element.classList.contains('selected')) return;
+
+      const all = document.querySelectorAll('.tariff-btn');
+      all.forEach(btn => {
+        btn.classList.remove('selected');
+        btn.classList.add('dimmed');
+        const details = btn.querySelector('.tariff-details');
+        if (details) btn.removeChild(details);
+      });
+
+      element.classList.add('selected');
+      element.classList.remove('dimmed');
+
+      const perks = {
+        "Base Free": ["+ Обычный доступ", "+ Ограниченные функции"],
+        "Base+": ["+ Все из Base", "+ Поддержка", "+ Больше настроек"],
+        "Vip": ["+ Все из Base+", "+ Ранний доступ", "+ Персонализация"],
+        "Premium": ["+ Все из Vip", "+ Безлимит", "+ Поддержка 24/7"]
+      };
+
+      const detailBox = document.createElement('div');
+      detailBox.className = 'tariff-details';
+
+      perks[name].forEach(line => {
+        const li = document.createElement('li');
+        li.innerText = line;
+        detailBox.appendChild(li);
+      });
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-confirm';
+      btn.innerText = 'Оформить';
+      detailBox.appendChild(btn);
+
+      element.appendChild(detailBox);
+    }
+
+    function handleTariffBackgroundClick(e) {
+      if (!e.target.classList.contains('tariff-btn')) {
+        document.querySelectorAll('.tariff-btn').forEach(btn => {
+          btn.classList.remove('selected', 'dimmed');
+          const details = btn.querySelector('.tariff-details');
+          if (details) btn.removeChild(details);
+        });
+      }
+    }
+
+    const dot = document.getElementById("dot");
+    const pentagon = document.getElementById("pentagon");
+    let dragging = false;
+
+    dot.addEventListener("mousedown", () => dragging = true);
+    dot.addEventListener("touchstart", () => dragging = true);
+    document.addEventListener("mouseup", () => dragging = false);
+    document.addEventListener("touchend", () => dragging = false);
+    document.addEventListener("mousemove", moveDot);
+    document.addEventListener("touchmove", moveDot, { passive: false });
+
+    pentagon.addEventListener("click", (e) => {
+      const rect = pentagon.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      dot.style.left = `${Math.min(Math.max(0, x), rect.width)}px`;
+      dot.style.top = `${Math.min(Math.max(0, y), rect.height)}px`;
+    });
+
+    function moveDot(e) {
+      if (!dragging) return;
+      const rect = pentagon.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      dot.style.left = `${Math.min(Math.max(0, x), rect.width)}px`;
+      dot.style.top = `${Math.min(Math.max(0, y), rect.height)}px`;
+    }
+  </script>
+</body>
+</html>
