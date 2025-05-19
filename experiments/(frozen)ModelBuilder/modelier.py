@@ -24,16 +24,16 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Telegram-бот
-BOT_TOKEN = "your_bot_token_here"  # Замените
-CHAT_ID = "your_chat_id_here"      # Замените
+# Telegram-уведомления
+BOT_TOKEN = "your_bot_token_here"  # Заменить на свой токен
+CHAT_ID = "your_chat_id_here"      # Заменить на свой chat_id
 
 def send_telegram_message(text):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         data = {"chat_id": CHAT_ID, "text": text}
         requests.post(url, data=data)
-        logging.info("Telegram-уведомление отправлено.")
+        logging.info("Уведомление отправлено в Telegram.")
     except Exception as e:
         logging.warning(f"Ошибка Telegram: {e}")
 
@@ -96,8 +96,8 @@ def main():
     jsonl_file = 'D:/TrainerModel/Dataset/podcast_large.jsonl'
     features_dir = 'D:/TrainerModel/Dataset/features'
     checkpoint_path = 'D:/XTTS-v2/xtts2_finetuned.pth'
-    checkpoints_dir = 'checkpoints'  # NEW
-    os.makedirs(checkpoints_dir, exist_ok=True)  # NEW
+    checkpoints_dir = 'checkpoints'
+    os.makedirs(checkpoints_dir, exist_ok=True)
     model_checkpoint_path = 'D:/XTTS-v2/model.pth'
     speakers_checkpoint_path = 'D:/XTTS-v2/speakers_xtts.pth'
     batch_size = 32
@@ -177,6 +177,10 @@ def main():
                         f.write(f"[Epoch {epoch+1}] Истинный текст: {true}\n")
                         f.write(f"[Epoch {epoch+1}] Предсказание  : {pred}\n\n")
 
+                del out  # очистка выхода
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
         val_loss /= len(val_loader)
         avg_train = total_loss / len(train_loader)
         print(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}")
@@ -192,7 +196,7 @@ def main():
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'val_loss': val_loss
-        }, os.path.join(checkpoints_dir, f"epoch_{epoch+1:03}.pth"))  # NEW
+        }, os.path.join(checkpoints_dir, f"epoch_{epoch+1:03}.pth"))
 
         if val_loss < best_val:
             best_val = val_loss
@@ -211,6 +215,12 @@ def main():
                 print(f"Ранняя остановка на {epoch+1}")
                 logging.info("Ранняя остановка.")
                 break
+
+        # Очистка памяти после эпохи
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+            logging.info("Очищена CUDA-память после эпохи.")
 
     writer.close()
     plt.figure(figsize=(10, 6))
