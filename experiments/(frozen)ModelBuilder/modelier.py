@@ -80,6 +80,14 @@ def save_training_config(config_dict, path='training_config.json'):
     except Exception as e:
         logging.error(f"Ошибка при сохранении конфигурации: {e}")
 
+# Подсчёт параметров модели # NEW
+def count_model_params(model):
+    total = sum(p.numel() for p in model.parameters())
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logging.info(f"Всего параметров в модели: {total:,}")
+    logging.info(f"Обучаемых параметров: {trainable:,}")
+    print(f"Параметры модели: всего {total:,}, обучаемых {trainable:,}")
+
 # Основная функция
 def main():
     logging.info("Инициализация обучения...")
@@ -94,7 +102,6 @@ def main():
     num_epochs = 20
     learning_rate = 1e-4
 
-    # Сохранение конфигурации
     training_config = {
         "jsonl_file": jsonl_file,
         "features_dir": features_dir,
@@ -109,7 +116,6 @@ def main():
     }
     save_training_config(training_config)
 
-    # Подготовка данных
     dataset = XTTS2Dataset(jsonl_file, features_dir)
     val_size = int(validation_split * len(dataset))
     train_size = len(dataset) - val_size
@@ -121,6 +127,9 @@ def main():
     logging.info("Загрузка модели XTTS2...")
     model = XTTS2Model.from_pretrained(model_checkpoint_path, speaker_checkpoint=speakers_checkpoint_path)
     model.to(device).half()
+
+    count_model_params(model)  # NEW
+
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
     criterion = nn.CrossEntropyLoss()
