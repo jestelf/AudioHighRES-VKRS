@@ -12,7 +12,7 @@ import torch.optim as optim
 from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm
 from xttsv2.model import XTTS2Model
-from xttsv2.data import text_to_token_ids
+from xttsv2.data import text_to_token_ids, token_ids_to_text  # NEW
 from torch.utils.tensorboard import SummaryWriter  # NEW
 
 # Настройка логирования
@@ -29,7 +29,7 @@ print(f"Используется устройство: {device}")
 logging.info(f"Используется устройство: {device}")
 torch.backends.cudnn.benchmark = True
 
-# Датасет для XTTS2
+# Датасет
 class XTTS2Dataset(Dataset):
     def __init__(self, jsonl_file, features_dir):
         self.records = []
@@ -64,7 +64,7 @@ class XTTS2Dataset(Dataset):
             print(f"Ошибка в записи {idx}: {e}")
             return torch.zeros(1), torch.zeros(1)
 
-# Функция для формирования батчей
+# Батч
 def collate_fn(batch):
     audio_features = [item[0] for item in batch]
     text_tokens = [item[1] for item in batch]
@@ -72,7 +72,7 @@ def collate_fn(batch):
     text_tokens = pad_sequence(text_tokens, batch_first=True, padding_value=0)
     return audio_features, text_tokens
 
-# Сохранение параметров обучения
+# Сохраняем конфиг обучения
 def save_training_config(config_dict, path='training_config.json'):
     try:
         with open(path, 'w', encoding='utf-8') as f:
@@ -81,7 +81,7 @@ def save_training_config(config_dict, path='training_config.json'):
     except Exception as e:
         logging.error(f"Ошибка при сохранении конфигурации: {e}")
 
-# Подсчёт параметров модели
+# Параметры модели
 def count_model_params(model):
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -89,7 +89,7 @@ def count_model_params(model):
     logging.info(f"Обучаемых параметров: {trainable:,}")
     print(f"Параметры модели: всего {total:,}, обучаемых {trainable:,}")
 
-# Основная функция
+# Основной запуск
 def main():
     logging.info("Инициализация обучения...")
 
@@ -103,7 +103,7 @@ def main():
     num_epochs = 20
     learning_rate = 1e-4
 
-    training_config = {
+    config = {
         "jsonl_file": jsonl_file,
         "features_dir": features_dir,
         "checkpoint_path": checkpoint_path,
@@ -115,7 +115,7 @@ def main():
         "learning_rate": learning_rate,
         "device": str(device)
     }
-    save_training_config(training_config)
+    save_training_config(config)
 
     dataset = XTTS2Dataset(jsonl_file, features_dir)
     val_size = int(validation_split * len(dataset))
@@ -128,7 +128,6 @@ def main():
     logging.info("Загрузка модели XTTS2...")
     model = XTTS2Model.from_pretrained(model_checkpoint_path, speaker_checkpoint=speakers_checkpoint_path)
     model.to(device).half()
-
     count_model_params(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
@@ -136,7 +135,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
     scaler = torch.cuda.amp.GradScaler()
 
-    writer = SummaryWriter(log_dir='runs/xtts2_training')  # NEW
+    writer = SummaryWriter(log_dir='runs/xtts2_training')
+    predictions_log_path = "predictions.txt"
+    if os.path.exists(predictions_log_path):
+        os.remove(predictions_log_path)
 
     best_val_loss = float('inf')
     train_losses = []
@@ -172,6 +174,16 @@ def main():
                     loss = criterion(outputs.view(-1, outputs.size(-1)), text_tokens.view(-1))
                 val_loss += loss.item()
 
+                # Прогнозы — логируем первые 3
+                with open(predictions_log_path, "a", encoding="utf-8") as pred_f:
+                    for i in range(min(3, audio_features.size(0))):
+                        true_tokens = text_tokens[i].detach().cpu().numpy()
+                        pred_tokens = outputs[i].argmax(dim=-1).detach().cpu().numpy()
+                        true_text = token_ids_to_text(true_tokens)
+                        pred_text = token_ids_to_text(pred_tokens)
+                        pred_f.write(f"[Epoch {epoch+1}] Истинный текст: {true_text}\n")
+                        pred_f.write(f"[Epoch {epoch+1}] Предсказание  : {pred_text}\n\n")
+
         val_loss /= len(val_loader)
         train_loss_avg = running_loss / len(train_loader)
 
@@ -179,8 +191,8 @@ def main():
         logging.info(f"Эпоха {epoch + 1}: Train Loss={train_loss_avg:.4f} | Val Loss={val_loss:.4f}")
         logging.info(f"Время эпохи {epoch + 1}: {time.time() - epoch_start_time:.2f} сек.")
 
-        writer.add_scalar('Loss/Train', train_loss_avg, epoch + 1)  # NEW
-        writer.add_scalar('Loss/Validation', val_loss, epoch + 1)  # NEW
+        writer.add_scalar('Loss/Train', train_loss_avg, epoch + 1)
+        writer.add_scalar('Loss/Validation', val_loss, epoch + 1)
 
         train_losses.append(train_loss_avg)
         val_losses.append(val_loss)
@@ -205,7 +217,7 @@ def main():
                 logging.info("Ранняя остановка обучения из-за отсутствия улучшений.")
                 break
 
-    writer.close()  # NEW
+    writer.close()
 
     # Визуализация потерь
     plt.figure(figsize=(10, 6))
