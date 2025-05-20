@@ -15,6 +15,7 @@ from tqdm import tqdm
 from xttsv2.model import XTTS2Model
 from xttsv2.data import text_to_token_ids, token_ids_to_text
 from torch.utils.tensorboard import SummaryWriter
+import jiwer  # NEW: для вычисления WER и CER
 
 # Настройка логирования
 logging.basicConfig(
@@ -25,8 +26,8 @@ logging.basicConfig(
 )
 
 # Telegram-уведомления
-BOT_TOKEN = "your_bot_token_here"  # Заменить на свой токен
-CHAT_ID = "your_chat_id_here"      # Заменить на свой chat_id
+BOT_TOKEN = "your_bot_token_here"  # Заменить
+CHAT_ID = "your_chat_id_here"      # Заменить
 
 def send_telegram_message(text):
     try:
@@ -145,7 +146,6 @@ def main():
     patience, no_improve = 5, 0
 
     for epoch in range(num_epochs):
-        start = time.time()
         model.train()
         total_loss = 0.0
 
@@ -160,8 +160,11 @@ def main():
             scaler.update()
             total_loss += loss.item()
 
+        # Валидация
         model.eval()
         val_loss = 0.0
+        wer_total, cer_total, samples = 0.0, 0.0, 0
+
         with torch.no_grad():
             for af, tt in val_loader:
                 af, tt = af.to(device), tt.to(device)
@@ -170,23 +173,33 @@ def main():
                     loss = loss_fn(out.view(-1, out.size(-1)), tt.view(-1))
                 val_loss += loss.item()
 
-                with open(pred_path, "a", encoding="utf-8") as f:
-                    for i in range(min(3, af.size(0))):
-                        true = token_ids_to_text(tt[i].cpu().numpy())
-                        pred = token_ids_to_text(out[i].argmax(-1).cpu().numpy())
+                for i in range(min(af.size(0), 3)):
+                    true = token_ids_to_text(tt[i].cpu().numpy())
+                    pred = token_ids_to_text(out[i].argmax(-1).cpu().numpy())
+                    with open(pred_path, "a", encoding="utf-8") as f:
                         f.write(f"[Epoch {epoch+1}] Истинный текст: {true}\n")
                         f.write(f"[Epoch {epoch+1}] Предсказание  : {pred}\n\n")
+                    wer_total += jiwer.wer(true, pred)
+                    cer_total += jiwer.cer(true, pred)
+                    samples += 1
 
-                del out  # очистка выхода
+                del out
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
 
         val_loss /= len(val_loader)
         avg_train = total_loss / len(train_loader)
-        print(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}")
-        logging.info(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}")
+        avg_wer = wer_total / samples if samples else 0.0
+        avg_cer = cer_total / samples if samples else 0.0
+
+        print(f"Эпоха {epoch+1}: Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}, WER={avg_wer:.2%}, CER={avg_cer:.2%}")
+        logging.info(f"Train Loss={avg_train:.4f}, Val Loss={val_loss:.4f}, WER={avg_wer:.2%}, CER={avg_cer:.2%}")
+
         writer.add_scalar("Loss/Train", avg_train, epoch + 1)
         writer.add_scalar("Loss/Validation", val_loss, epoch + 1)
+        writer.add_scalar("WER", avg_wer, epoch + 1)
+        writer.add_scalar("CER", avg_cer, epoch + 1)
+
         train_losses.append(avg_train)
         val_losses.append(val_loss)
         sched.step()
@@ -212,11 +225,9 @@ def main():
         else:
             no_improve += 1
             if no_improve >= patience:
-                print(f"Ранняя остановка на {epoch+1}")
                 logging.info("Ранняя остановка.")
                 break
 
-        # Очистка памяти после эпохи
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
@@ -228,12 +239,11 @@ def main():
     plt.plot(val_losses, label="Validation")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.title("Потери")
+    plt.title("Train vs Validation Loss")
     plt.legend()
     plt.grid()
     plt.savefig("loss_plot.png")
     logging.info("Сохранён график потерь.")
-    print("Обучение завершено.")
     send_telegram_message(f"🛑 Обучение завершено. Последняя эпоха: {epoch+1}\nVal Loss: {val_loss:.4f}")
 
 if __name__ == "__main__":
