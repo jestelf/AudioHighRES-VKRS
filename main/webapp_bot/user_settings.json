@@ -1,35 +1,13 @@
 {
   "564016491": {
-    "temperature": 0,
-    "top_k": 0,
-    "top_p": 0,
-    "repetition_penalty": 1,
-    "length_penalty": 0,
-    "speed": 1.02,
+    "temperature": 0.638,
+    "top_k": 49,
+    "top_p": 0.752,
+    "repetition_penalty": 2.151,
+    "length_penalty": 1.08,
+    "speed": 1.126,
     "notifications": true,
-    "dotX": 50,
-    "dotY": 50
-  },
-  "1080009363": {
-    "temperature": 0.655,
-    "top_k": 51,
-    "top_p": 0.763,
-    "repetition_penalty": 2.275,
-    "length_penalty": 1.053,
-    "speed": 0.901,
-    "notifications": true,
-    "dotX": 23.33586259321733,
-    "dotY": 55.63636432994495
-  },
-  "1819492628": {
-    "temperature": 0.647,
-    "top_k": 48,
-    "top_p": 0.769,
-    "repetition_penalty": 2.113,
-    "length_penalty": 1.07,
-    "speed": 555,
-    "notifications": true,
-    "dotX": 67.3796955803087,
-    "dotY": 83.8680879099329
+    "dotX": 54.596623507413,
+    "dotY": 82.05788005482066
   }
 }

@@ -2,7 +2,7 @@
 # ────────────────────────────────────────────────────────────────────────────────
 # • Flask-сайт              http://localhost:5000
 # • LocalTunnel-туннель     https://<sub>.loca.lt
-# • Telegram-бот            (команда /start даёт ин-лайн-меню слотов)
+# • Telegram-бот            (команда /start даёт ин-лайн-меню слотов + reply-кнопку WebApp)
 # • PatentTTS-проверка      POST /audio_check
 # • Anti-scam-классификатор (classifier.py)
 # • XTTS-clone / synthesis  (voice_module.py)
@@ -37,9 +37,6 @@ from telegram import (
     Update, InlineKeyboardButton, InlineKeyboardMarkup,
     InputFile, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 )
-
-# для безопасной отправки аудио
-from telegram.error import TelegramError
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     CallbackQueryHandler, ContextTypes, filters
@@ -50,34 +47,23 @@ from classifier import get_classifier
 from voice_module import VoiceModule
 
 # ───────────────────────── конфигурация
-load_dotenv()                                 #   читаем .env
+load_dotenv()  # ← .env читается здесь
 
-BOT_TOKEN       = os.getenv("BOT_TOKEN")
+BOT_TOKEN          = os.getenv("BOT_TOKEN")
+LT_SUBDOMAIN       = os.getenv("LT_SUBDOMAIN", "audiohighres")
+LT_CMD_ENV         = os.getenv("LT_CMD")
+XTTS_MODEL_DIR     = Path(os.getenv("XTTS_MODEL_DIR", "D:/prdja"))
 
-LT_SUBDOMAIN    = os.getenv("LT_SUBDOMAIN", "audiohighres")
-LT_CMD_ENV      = os.getenv("LT_CMD")
+SETTINGS_DB        = "user_settings.json"
+TARIFFS_DB         = "tariffs_db.json"
+AUTH_FILE          = "authorized_users.txt"
+STRIKES_DB         = "user_strikes.json"
+BL_FILE            = "blacklist.txt"
+USERS_EMB          = Path("users_emb")
+WEBAPP_URL         = os.getenv("WEBAPP_URL")  # ← будет обновлён после запуска LT
 
-XTTS_MODEL_DIR  = Path(os.getenv("XTTS_MODEL_DIR", "D:/prdja"))
-
-# все «постоянные» файлы / папки теперь настраиваются извне
-SETTINGS_DB     = os.getenv("SETTINGS_DB",     "user_settings.json")
-TARIFFS_DB      = os.getenv("TARIFFS_DB",      "tariffs_db.json")
-AUTH_FILE       = os.getenv("AUTH_FILE",       "authorized_users.txt")
-STRIKES_DB      = os.getenv("STRIKES_DB",      "user_strikes.json")
-BL_FILE         = os.getenv("BLACKLIST_FILE",  "blacklist.txt")
-USERS_EMB       = Path(os.getenv("USERS_EMB_DIR", "users_emb"))
-
-# числа приводим к нужному типу
-MAX_STRIKES     = int  (os.getenv("MAX_STRIKES",   "5"))
-ALERT_THRESH    = float(os.getenv("ALERT_THRESH",  "0.50"))
-
-WEBAPP_URL      = os.getenv("WEBAPP_URL")
-ADMIN_IDS = {i for i in os.getenv("ADMIN_IDS", "").split(",") if i.isdigit()}
-
-def is_admin(uid: str) -> bool:
-    """True, если пользователь в списке администраторов."""
-    return uid in ADMIN_IDS
-
+MAX_STRIKES  = 5
+ALERT_THRESH = 0.50
 
 # ───────── тарифы
 TARIFF_DEFS = {
@@ -99,38 +85,6 @@ USERS_EMB.mkdir(exist_ok=True)
 Path(BL_FILE).touch(exist_ok=True)
 
 # ───────────────────────── helpers
-# ───────── тарифы: вспомогательные функции  ← вставить здесь
-def set_tariff_safe(uid: str, name: str) -> str:
-    """
-    Валидирует имя тарифа и записывает его в tariffs_db.json.
-    Возвращает фактически установленный план (или прежний, если ошибка).
-    """
-    if name not in TARIFF_DEFS:               # неизвестный план
-        return get_tariff(uid)                # ничего не меняем
-    db = load_json(TARIFFS_DB)
-    db[uid] = name
-    save_json(TARIFFS_DB, db)
-    return name
-
-# ---- какие поля из user_settings.json можно отдавать в VoiceModule
-ALLOWED_TTS_KEYS = {
-    "temperature", "top_k", "top_p",
-    "repetition_penalty", "length_penalty", "speed",
-}
-
-def apply_user_settings(uid: str) -> None:
-    """
-    Берём сохранённые настройки пользователя, отфильтровываем
-    только TTS-параметры и передаём их в VoiceModule.
-    """
-    raw = load_json(SETTINGS_DB).get(uid)
-    if not raw:
-        return
-    overrides = {k: raw[k] for k in ALLOWED_TTS_KEYS if k in raw}
-    if overrides:
-        VOICE.set_user_params(uid, **overrides)
-
-
 def load_json(p: str) -> dict:
     try:
         with open(p, encoding="utf-8") as f:
@@ -192,6 +146,12 @@ def log_line(uid: str, line: str):
     with open(folder / "message.log", "a", encoding="utf-8") as f:
         f.write(f"[{ts}] {line}\n")
 
+def apply_user_settings(uid: str) -> None:
+    """Загружает сохранённые параметры юзера (если есть) в VoiceModule."""
+    params = load_json(SETTINGS_DB).get(uid)
+    if params:
+        VOICE.set_user_params(uid, **params)
+
 ABBR = {
     "Безопасные сообщения":"БС","Родственник в беде":"РВБ","Выигрыши/лотереи/подарки":"ВЛ",
     "Госорганы и службы":"ГОС","Инвестиции и заработок":"ИЗ","Курьерские и почтовые обманы":"КПО",
@@ -237,18 +197,6 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 ACTIVE_SLOTS: dict[str,int] = {}
 
-# ───────────────────────── WebApp reply-клавиатура
-def build_webapp_keyboard() -> ReplyKeyboardMarkup:
-    """
-    Отдаёт ReplyKeyboardMarkup с одной кнопкой «⚙️ Настройки».
-    Если WEBAPP_URL задан, кнопка открывает Web-App.
-    """
-    btn = (KeyboardButton("⚙️ Настройки",
-                          web_app=WebAppInfo(url=WEBAPP_URL))
-           if WEBAPP_URL else
-           KeyboardButton("⚙️ Настройки"))
-    return ReplyKeyboardMarkup([[btn]], resize_keyboard=True)
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -258,6 +206,13 @@ def favicon():
     return send_from_directory(app.static_folder, "favicon.ico",
                                mimetype="image/vnd.microsoft.icon")
 
+# ───────────────────────── WebApp reply-клавиатура
+def build_webapp_keyboard() -> ReplyKeyboardMarkup:
+    btn = KeyboardButton("⚙️ Настройки", web_app=WebAppInfo(url=WEBAPP_URL)) if WEBAPP_URL \
+          else KeyboardButton("⚙️ Настройки")
+    return ReplyKeyboardMarkup([[btn]], resize_keyboard=True)
+
+# ───────────────────────── Flask-routes (auth / settings / tts ...)
 @app.route("/telegram_auth", methods=["POST"])
 def telegram_auth():
     d = request.get_json(force=True, silent=True)
@@ -279,19 +234,6 @@ def save_settings():
     db[str(p["userId"])] = p["settings"]
     save_json(SETTINGS_DB, db)
     return jsonify(status="success"), 200
-
-@app.route("/set_user_tariff", methods=["POST"])
-def set_user_tariff():
-    """
-    Payload: {"userId": 123, "plan": "vip"}
-    """
-    p = request.get_json(force=True, silent=True)
-    if not p or "userId" not in p or "plan" not in p:
-        return jsonify(status="error", message="bad payload"), 400
-    uid  = str(p["userId"])
-    plan = p["plan"]
-    new  = set_tariff_safe(uid, plan)
-    return jsonify(status="success", plan=new), 200
 
 @app.route("/get_user_settings")
 def get_settings():
@@ -368,12 +310,10 @@ def voice_tts():
     if not emb.exists():
         return jsonify(status="error", message="slot empty"), 404
 
-    # применяем личные настройки до синтеза
+    # применяем сохранённые настройки до синтеза
     apply_user_settings(uid)
 
-    # явно указываем VOICE, какой embedding-файл использовать
     VOICE.user_embedding[uid] = emb  # type: ignore
-
     try:
         wav_path = Path(VOICE.synthesize(uid, text))
     except Exception as e:
@@ -383,7 +323,6 @@ def voice_tts():
         return jsonify(status="error", message="synthesis failed"), 500
 
     inc_daily_gen(uid)
-    # отдаем настоящий WAV
     return send_file(
         wav_path.resolve(),
         as_attachment=True,
@@ -409,86 +348,49 @@ def build_slot_keyboard(uid: str) -> InlineKeyboardMarkup:
 
 async def cmd_start(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = str(upd.effective_user.id)
-    if is_blacklisted(uid):
-        return
-
-    # ── регистрация пользователю (если впервые)
+    if is_blacklisted(uid): return
     with open(AUTH_FILE, "a+", encoding="utf-8") as f:
-        f.seek(0)
-        known = {l.strip() for l in f}
-        if uid not in known:
-            f.write(uid + "\n")
-
-    # ── тариф: если ещё не задан – free
-    if uid not in load_json(TARIFFS_DB):
+        f.seek(0); ids = {l.strip() for l in f}
+        if uid not in ids: f.write(uid + "\n")
+    if get_tariff(uid) not in TARIFF_DEFS:
         set_tariff(uid, "free")
 
-    # ── отдаём клавиатуры
-    await upd.message.reply_text("Ваши голосовые слоты:",
-                                 reply_markup=build_slot_keyboard(uid))
+    # сообщение со слотами (inline-клавиатура)
+    await upd.message.reply_text("Ваши голосовые слоты:", reply_markup=build_slot_keyboard(uid))
 
-    await upd.message.reply_text("Откройте Web-App для гибких настроек:",
-                                 reply_markup=build_webapp_keyboard())
+    # отдельная reply-клавиатура для WebApp
+    await upd.message.reply_text(
+        "Откройте WebApp для гибких настроек:",
+        reply_markup=build_webapp_keyboard()
+    )
 
 async def cb_handler(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    q   = upd.callback_query
+    q = upd.callback_query
+    await q.answer()
     uid = str(q.from_user.id)
-    cmd, arg = q.data.split(":", 1)
-
-    # ────────── слоты  ──────────
-    if cmd in {"slot", "new"}:
-        idx = int(arg)
-        ACTIVE_SLOTS[uid] = idx
-        if cmd == "slot":
-            await q.answer("Слот выбран")
-            await q.edit_message_text(f"Слот {idx+1} выбран.",
-                                      reply_markup=build_slot_keyboard(uid))
-        else:
-            await q.answer()
-            await q.edit_message_text("Отправьте новое голосовое сообщение для слепка.")
-        return
-
-    # ────────── тарифы (только админ) ──────────
-    if cmd == "plan":
-        if not is_admin(uid):
-            await q.answer("Недостаточно прав", show_alert=True)
-            return
-        new = set_tariff_safe(uid, arg)
-        await q.answer()
-        await q.edit_message_text(f"🎫 Тариф установлен: *{new}*",
-                                  reply_markup=build_tariff_keyboard(new),
-                                  parse_mode='Markdown')
+    cmd, idx = q.data.split(":")
+    idx = int(idx)
+    ACTIVE_SLOTS[uid] = idx
+    if cmd == "slot":
+        await q.edit_message_text(f"Слот {idx+1} выбран.", reply_markup=build_slot_keyboard(uid))
+    else:
+        await q.edit_message_text("Отправьте новое голосовое сообщение для слепка.", reply_markup=None)
 
 async def handle_web_app(upd: Update, _: ContextTypes.DEFAULT_TYPE):
     uid = str(upd.effective_user.id)
-    if is_blacklisted(uid):
-        return
-
+    if is_blacklisted(uid): return
     try:
         payload = json.loads(upd.message.web_app_data.data)
-    except Exception:
+    except:
         await upd.message.reply_text("❌ bad JSON")
         return
-
-    act = payload.get("action")
-
-    if act == "save_settings":
-        db = load_json(SETTINGS_DB)
-        db[uid] = payload.get("settings", {})
-        save_json(SETTINGS_DB, db)
-        await upd.message.reply_text("✅ Настройки сохранены.")
-
-    elif act == "set_tariff":
-        if not is_admin(uid):
-            await upd.message.reply_text("⛔ Только админ может менять тариф.")
-            return
-        plan = payload.get("plan")
-        new  = set_tariff_safe(uid, plan)
-        await upd.message.reply_text(f"🎫 Тариф установлен: *{new}*",
-                                     parse_mode='Markdown')
-
-    else:
+    if payload.get("action") != "save_settings":
         await upd.message.reply_text("❌ unknown action")
+        return
+    db = load_json(SETTINGS_DB)
+    db[uid] = payload.get("settings", {})
+    save_json(SETTINGS_DB, db)
+    await upd.message.reply_text("✅ Настройки сохранены.")
 
 async def tg_voice(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     uid = str(upd.effective_user.id)
@@ -534,31 +436,26 @@ async def tg_voice(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def tg_text(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not upd.message or not upd.message.text:
         return
-
     uid = str(upd.effective_user.id)
     txt = upd.message.text.strip()
-
     if is_blacklisted(uid):
         return
 
-    # ---------- анти-скам ----------
+    # scam-check
     clf = get_classifier()
     scores = await clf.analyse(txt)
     comp = ";".join(f"{ABBR[k]}{scores.get(k,0)*100:04.1f}" for k in ABBR)
     log_line(uid, f"{txt} ({comp})")
-
-    safe = scores.get("Безопасные сообщения", 0)
+    safe = scores.get("Безопасные сообщения",0)
     top_lbl, top_p = max(scores.items(), key=lambda kv: kv[1])
-
     warn = None
     if top_lbl != "Безопасные сообщения" and top_p >= ALERT_THRESH:
         warn = f"«{top_lbl}» {top_p*100:.0f}%"
     elif safe < 0.50 and top_p < ALERT_THRESH:
-        parts = [f"{l} {p*100:.0f}%" for l, p in scores.items()
-                 if l != "Безопасные сообщения" and p > 0.05]
+        parts = [f"{l} {p*100:.0f}%" for l,p in scores.items()
+                 if l!="Безопасные сообщения" and p>0.05]
         if parts:
             warn = "; ".join(parts)
-
     if warn:
         s = add_strike(uid)
         if s >= MAX_STRIKES:
@@ -566,13 +463,11 @@ async def tg_text(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await upd.message.reply_text("🚫 Заблокировано.")
             return
         await upd.message.reply_text(f"⚠️ {warn}. Strike {s}/{MAX_STRIKES}.")
-        return
 
-    # ---------- обычный TTS ----------
+    # TTS по слоту
     slot = ACTIVE_SLOTS.get(uid)
     if slot is None:
         return
-
     if daily_gen_count(uid) >= tariff_info(uid)["daily_gen"]:
         await upd.message.reply_text("Дневной лимит генераций исчерпан.")
         return
@@ -582,67 +477,44 @@ async def tg_text(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await upd.message.reply_text(f"Слот {slot+1} пуст. Выберите занятый слот.")
         return
 
+    # применяем сохранённые настройки до синтеза
     apply_user_settings(uid)
-    VOICE.user_embedding[uid] = emb  # type: ignore
 
+    VOICE.user_embedding[uid] = emb  # type: ignore
     loop = asyncio.get_running_loop()
     try:
-        wav_path = Path(await loop.run_in_executor(voice_pool,
-                                                   VOICE.synthesize, uid, txt))
+        wav_path = Path(await loop.run_in_executor(voice_pool, VOICE.synthesize, uid, txt))
     except Exception as e:
         log_line(uid, f"TTS ERROR: {e}")
         return
 
     with open(str(wav_path), "rb") as f:
-        await ctx.bot.send_audio(chat_id=upd.effective_chat.id,
-                                 audio=InputFile(f, filename=wav_path.name),
-                                 title="TTS")
+        await ctx.bot.send_audio(
+            chat_id=upd.effective_chat.id,
+            audio=InputFile(f, filename=wav_path.name),
+            title="TTS"
+        )
     inc_daily_gen(uid)
-
-
-def build_tariff_keyboard(current: str) -> InlineKeyboardMarkup:
-    rows = []
-    for p in TARIFF_DEFS:
-        mark = "✅ " if p == current else ""
-        rows.append([
-            InlineKeyboardButton(f"{mark}{p.title()}", callback_data=f"plan:{p}")
-        ])
-    return InlineKeyboardMarkup(rows)
-
-
-async def cmd_tariff(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    uid = str(upd.effective_user.id)
-    if not is_admin(uid):
-        await upd.message.reply_text("⛔ Это админ-команда.")
-        return
-
-    plan = get_tariff(uid)
-    txt  = (f"Текущий тариф пользователя – *{plan}*\n"
-            "Выберите новый план:")
-    await upd.message.reply_text(txt,
-                                 reply_markup=build_tariff_keyboard(plan),
-                                 parse_mode='Markdown')
 
 def run_flask():
     app.run(port=5000, debug=False, use_reloader=False)
 
 def main():
+    global WEBAPP_URL
     if not BOT_TOKEN or not re.fullmatch(r"\d+:[\w-]{35}", BOT_TOKEN):
         raise RuntimeError("❌ BOT_TOKEN отсутствует или некорректен.")
     threading.Thread(target=run_flask, daemon=True).start()
     print("🌐 Flask на :5000")
+
+    # запускаем LT и запоминаем публичный URL для WebApp-кнопки
     lt_url = start_lt()
     print("✅", lt_url)
-
-    # если .env не задаёт URL, берём LT-домен
-    global WEBAPP_URL
     if not WEBAPP_URL:
-        WEBAPP_URL = lt_url.rstrip("/") + "/"
+        WEBAPP_URL = lt_url
 
     app_tg = ApplicationBuilder().token(BOT_TOKEN).build()
     app_tg.add_handler(CommandHandler("start", cmd_start))
     app_tg.add_handler(CallbackQueryHandler(cb_handler))
-    app_tg.add_handler(CommandHandler("tariff", cmd_tariff))
     app_tg.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app))
     app_tg.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, tg_voice))
     app_tg.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, tg_text))

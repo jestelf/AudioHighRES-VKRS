@@ -1,0 +1,13 @@
+flask
+python-dotenv
+python-telegram-bot
+transformers
+torch
+torchaudio
+pydub
+librosa
+pytest
+pytest-asyncio
+locust
+bandit
+requests

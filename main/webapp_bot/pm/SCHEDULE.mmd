@@ -1,0 +1,15 @@
+gantt
+  title Schedule – v1.0
+  dateFormat  YYYY-MM-DD
+  section Dev
+  Bot & API          :done,   d1, 2025-05-10, 5d
+  Web-App            :done,   d2, after d1,    4d
+  VoiceModule wrap   :active, d3, after d2,    3d
+  section QA
+  Unit tests         :done,   q1, 2025-05-15, 3d
+  Load tests         :active, q2, after q1,    2d
+  Security scan      :        q3, after q2,    2d
+  UAT sign-off       :        q4, after q3,    1d
+  section Release
+  Docker / CI        :        r1, parallel d3, 3d
+  1.0 Release        :        r2, 2025-06-15, 0d
