@@ -1,13 +1,13 @@
 {
   "564016491": {
-    "temperature": 0.638,
-    "top_k": 49,
-    "top_p": 0.752,
-    "repetition_penalty": 2.151,
-    "length_penalty": 1.08,
-    "speed": 1.126,
-    "notifications": true,
-    "dotX": 54.596623507413,
-    "dotY": 82.05788005482066
+    "temperature": 0.933,
+    "top_k": 92,
+    "top_p": 0.945,
+    "repetition_penalty": 1.207,
+    "length_penalty": 0.605,
+    "speed": 4,
+    "notifications": false,
+    "dotX": 51.653536016290836,
+    "dotY": 1.5035837346857244
   }
 }

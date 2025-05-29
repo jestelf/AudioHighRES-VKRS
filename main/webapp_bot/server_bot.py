@@ -48,6 +48,11 @@ from telegram.ext import (
 from audio_checker import predict
 from classifier import get_classifier
 from voice_module import VoiceModule
+from bot_extra_commands import (
+    cmd_help, cmd_about, cmd_stats,
+    cmd_feedback, cmd_history, cmd_reset,
+    reset_confirm
+)
 
 # ───────────────────────── конфигурация
 load_dotenv()                                 #   читаем .env
@@ -412,6 +417,21 @@ async def cmd_start(upd: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if is_blacklisted(uid):
         return
 
+    # ── «жёсткий» сброс Web-App  ───────────────────────────────────
+    if ctx.args and ctx.args[0].lower() == "reset":
+        # кнопка-ссылка открывает Web-App c query-param  ?reset=1
+        reset_kb = ReplyKeyboardMarkup(
+            [[KeyboardButton("Очистить Web-App",
+                             web_app=WebAppInfo(url=f"{WEBAPP_URL}?reset=1"))]],
+            resize_keyboard=True, one_time_keyboard=True
+        )
+        await upd.message.reply_text(
+            "Нажмите кнопку ниже — Web-App перезапустится без сохранённых данных.",
+            reply_markup=reset_kb
+        )
+        return                       # дальше /start не продолжаем
+
+
     # ── регистрация пользователю (если впервые)
     with open(AUTH_FILE, "a+", encoding="utf-8") as f:
         f.seek(0)
@@ -643,6 +663,11 @@ def main():
     app_tg.add_handler(CommandHandler("start", cmd_start))
     app_tg.add_handler(CallbackQueryHandler(cb_handler))
     app_tg.add_handler(CommandHandler("tariff", cmd_tariff))
+    app_tg.add_handler(CommandHandler("help", cmd_help))
+    app_tg.add_handler(CommandHandler("about", cmd_about))
+    app_tg.add_handler(CommandHandler("stats", cmd_stats))
+    app_tg.add_handler(CommandHandler("feedback", cmd_feedback))
+    app_tg.add_handler(CommandHandler("history", cmd_history))
     app_tg.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app))
     app_tg.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, tg_voice))
     app_tg.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, tg_text))

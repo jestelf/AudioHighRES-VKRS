@@ -15,6 +15,26 @@ if (!window.Telegram || !Telegram.WebApp) {
 }
 const tg = Telegram.WebApp;
 
+/* -----------------------------------------------------------
+   Авто-сброс, если Web-App запущен с  ?reset=1  или
+   если start_param (deep-link) == 'reset'
+----------------------------------------------------------- */
+(function () {
+  const urlParam   = new URLSearchParams(location.search).get('reset');
+  const startParam = tg.initDataUnsafe?.start_param;          // deep-link
+  const needReset  = urlParam === '1' || startParam === 'reset';
+
+  // чтобы не уйти в бесконечный цикл, проверяем флаг
+  if (needReset && !sessionStorage.getItem('didHardReset')) {
+    sessionStorage.setItem('didHardReset', 'yes');  // один раз за сессию
+    // чистим все наши ключи и мгновенно перезагружаем
+    localStorage.removeItem('tgUser');
+    localStorage.removeItem('allSettings');
+    location.href = location.origin + location.pathname;     // перезапуск без ?reset
+  }
+})();
+
+
 // ───────── Удобный доступ к текущему userId
 const getUserId = () => {
   const ls = JSON.parse(localStorage.getItem('tgUser') || 'null');
